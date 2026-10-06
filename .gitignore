@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+uploads/*
+!uploads/.gitkeep
+
+training/runs/
+results/
+data/raw/
+data/processed/
+
+foodlens.db
+
+.env
+*.log
+
+.vscode/
+
+# Training/test files
+runs/
+yolo11n.pt
+bus.jpg
+training/runs/
+
+# Unused model weights
+models/foodlens_yolo11n_best.pt
+training/weights/
+training/yolo11m.pt
+training/yolo11s.pt
