@@ -1,0 +1,4 @@
+.page-content > .section-block { padding-top: 26px; }
+.page-content > .section-block + .section-block { padding-top: 38px; }
+.page-content .nutrition-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.history-card-button { text-align: left; }

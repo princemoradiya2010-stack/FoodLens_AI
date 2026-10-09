@@ -1,0 +1,8 @@
+.page-heading + .scanner { padding-top: 20px; }
+.page-heading + .scanner .dropzone { min-height: 350px; }
+.scanner .upload-card { max-width: 980px; margin: 0 auto; }
+.scanner .results { scroll-margin-top: 86px; }
+.scanner .confidence-meter { margin-top: 8px; }
+@media (max-width: 640px) {
+  .page-heading + .scanner .dropzone { min-height: 250px; }
+}

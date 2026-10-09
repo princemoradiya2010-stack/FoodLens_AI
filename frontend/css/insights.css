@@ -1,0 +1,10 @@
+#insights-progress { margin-top: 12px; }
+#recommendations-list { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+#recommendations-list .suggestion-card { min-height: 150px; }
+.weekly-nutrition-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.weekly-bars { display: flex; align-items: end; gap: 5px; height: 54px; margin-top: 13px; }
+.weekly-bars span { flex: 1; min-height: 0; border-radius: 4px 4px 1px 1px; background: #72a987; }
+.weekly-day-labels { display: flex; gap: 5px; margin-top: 5px; color: var(--muted); font-size: .62rem; text-align: center; }
+.weekly-day-labels span { flex: 1; }
+@media (max-width: 760px) { .weekly-nutrition-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .weekly-nutrition-grid { grid-template-columns: 1fr; } }

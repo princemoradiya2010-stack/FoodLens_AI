@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="Review nutrition information for a selected FoodLens food." /><title>FoodLens AI · Food Details</title><link rel="stylesheet" href="css/global.css" /><link rel="stylesheet" href="css/meals.css" /></head>
+<body data-page="food">
+  <header class="topbar"><nav class="navbar container" aria-label="Main navigation">
+    <a class="brand" href="index.html"><span class="brand-icon">◉</span><span class="brand-copy"><strong>FOODLENS AI</strong><small>SMART NUTRITION</small></span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>
+    <div class="nav-menu" id="nav-menu"><a data-page="dashboard" href="index.html">Dashboard</a><a data-page="scan" href="scan.html">Scan Food</a><a data-page="today" href="today.html">Today's Meals</a><a data-page="history" href="history.html">History</a><a data-page="insights" href="insights.html">Insights</a></div>
+    <div class="nav-actions"><span class="today-indicator"><span class="today-indicator-dot"></span><span id="today-date">Today</span></span><a class="profile-button" href="profile.html" aria-label="Profile and nutrition goals">F</a></div>
+  </nav></header>
+  <main class="container page-content"><section class="page-heading"><span class="eyebrow">FoodLens analysis</span><h1 id="food-title">Food Details</h1><p id="food-serving">Select a detected food from a scan to review its nutrition estimate.</p></section>
+    <section class="section-block"><div id="food-confidence" class="confidence-pill" hidden></div><div id="food-nutrition" class="nutrition-grid"></div><div id="food-empty" class="empty-state-message">No food information was supplied. Food details are shown from a scan result only.</div><div id="food-save-actions" class="add-meal-actions" hidden><p id="food-save-message" class="add-meal-message" aria-live="polite"></p><button id="food-add-meal" class="primary-btn" type="button">＋ Add to Today's Meal</button></div><a class="primary-btn" href="scan.html">Scan a meal</a></section>
+  </main><footer class="site-footer"><div class="container"><a href="about.html">About FoodLens AI</a><span>Nutrition estimates are informational and may vary.</span></div></footer><div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="js/api.js"></script><script src="js/global.js"></script><script src="js/food.js"></script>
+</body></html>

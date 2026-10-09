@@ -1,0 +1,9 @@
+.history-filter-label { gap: 9px; }
+.custom-date-filter { display: flex; justify-content: flex-end; gap: 10px; margin: -4px 0 14px; }
+.custom-date-filter[hidden] { display: none; }
+.custom-date-filter label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: .75rem; }
+.custom-date-filter input { min-height: 34px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); }
+@media (max-width: 640px) {
+  .history .section-heading-row { flex-direction: column; align-items: flex-start; }
+  .custom-date-filter { justify-content: flex-start; flex-wrap: wrap; }
+}
