@@ -3,6 +3,14 @@
 .scanner .upload-card { max-width: 980px; margin: 0 auto; }
 .scanner .results { scroll-margin-top: 86px; }
 .scanner .confidence-meter { margin-top: 8px; }
+.nutrition-note,
+.nutrition-unavailable {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.nutrition-note { margin: 12px 0 0; }
+.nutrition-unavailable { margin: 10px 0 0; }
 @media (max-width: 640px) {
   .page-heading + .scanner .dropzone { min-height: 250px; }
 }

@@ -1,10 +1,16 @@
 from pathlib import Path
 from collections import Counter
 from datetime import datetime
+import re
+import sys
 
-from fastapi import FastAPI, File, UploadFile
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from ultralytics import YOLO
 from nutrition.nutrition_data import NUTRITION_DATA
 from backend.database import (
@@ -19,6 +25,17 @@ from nutrition.goals import DAILY_GOALS
 from nutrition.recommendations import generate_recommendations
 from fastapi.middleware.cors import CORSMiddleware
 
+
+def normalize_food_name(food_name):
+    return re.sub(r"[^a-z0-9]+", " ", str(food_name).lower()).strip()
+
+
+NORMALIZED_NUTRITION_DATA = {
+    normalize_food_name(food_name): nutrition
+    for food_name, nutrition in NUTRITION_DATA.items()
+}
+
+
 class SaveMealRequest(BaseModel):
     meal_type: str
     meal_summary: list
@@ -27,8 +44,6 @@ class SaveMealRequest(BaseModel):
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 MODEL_PATH = BASE_DIR / "models" / "foodlens_yolo11s_best.pt"
 UPLOAD_DIR = BASE_DIR / "uploads"
@@ -180,10 +195,8 @@ def today_recommendations():
 async def predict(file: UploadFile = File(...)):
 
     # Check file type
-    if not file.content_type.startswith("image/"):
-        return {
-            "error": "Please upload an image file."
-        }
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Please upload an image file.")
 
     # Save uploaded image
     file_path = UPLOAD_DIR / file.filename
@@ -194,14 +207,17 @@ async def predict(file: UploadFile = File(...)):
         f.write(contents)
 
     # Open image
-    image = Image.open(file_path).convert("RGB")
+    try:
+        image = Image.open(file_path).convert("RGB")
+    except (UnidentifiedImageError, OSError) as error:
+        file_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="The uploaded file could not be read as an image.") from error
 
     # Run YOLO
     results = model.predict(
         source=image,
         imgsz=640,
         conf=0.25,
-        device=0,
         verbose=False
     )
 
@@ -236,10 +252,8 @@ async def predict(file: UploadFile = File(...)):
                 }
             }
 
-            # Add nutrition
-            if food_name in NUTRITION_DATA:
-                nutrition = NUTRITION_DATA[food_name]
-
+            nutrition = NORMALIZED_NUTRITION_DATA.get(normalize_food_name(food_name))
+            if nutrition is not None:
                 detection["nutrition"] = nutrition
 
             detections.append(detection)
@@ -254,74 +268,48 @@ async def predict(file: UploadFile = File(...)):
 
     for food_name, quantity in food_counts.items():
 
-        if food_name not in NUTRITION_DATA:
+        nutrition = NORMALIZED_NUTRITION_DATA.get(normalize_food_name(food_name))
+        if nutrition is None:
             continue
 
-        nutrition = NUTRITION_DATA[food_name]
-
-        meal_summary.append({
+        item = {
             "food": food_name,
             "quantity": quantity,
-            "serving": nutrition["serving"],
-            "calories": nutrition["calories"] * quantity,
-            "protein": round(nutrition["protein"] * quantity, 2),
-            "carbs": round(nutrition["carbs"] * quantity, 2),
-            "fat": round(nutrition["fat"] * quantity, 2)
-        })
-    # --------------------------------------------------
-    # Calculate total meal nutrition
-    # --------------------------------------------------
+            "serving": nutrition.get("serving", "")
+        }
+        for nutrient in ("calories", "protein", "carbs", "fat", "fiber"):
+            value = nutrition.get(nutrient)
+            if isinstance(value, (int, float)):
+                item[nutrient] = round(value * quantity, 2)
+        meal_summary.append(item)
+
+    total_nutrition_values = {
+        nutrient: 0
+        for nutrient in ("calories", "protein", "carbs", "fat", "fiber")
+    }
+    available_nutrients = set()
+    for detection in detections:
+        nutrition = detection.get("nutrition", {})
+        quantity = detection["quantity"]
+        for nutrient in total_nutrition_values:
+            value = nutrition.get(nutrient)
+            if isinstance(value, (int, float)):
+                total_nutrition_values[nutrient] += value * quantity
+                available_nutrients.add(nutrient)
 
     total_nutrition = {
-        "calories": 0,
-        "protein": 0,
-        "carbs": 0,
-        "fat": 0
+        nutrient: round(value, 2) if nutrient in available_nutrients else None
+        for nutrient, value in total_nutrition_values.items()
     }
 
-    for detection in detections:
-
-        food_name = detection["food"]
-
-        if food_name not in NUTRITION_DATA:
-            continue
-
-        nutrition = NUTRITION_DATA[food_name]
-
-        quantity = detection["quantity"]
-
-        total_nutrition["calories"] += nutrition["calories"] * quantity
-        total_nutrition["protein"] += nutrition["protein"] * quantity
-        total_nutrition["carbs"] += nutrition["carbs"] * quantity
-        total_nutrition["fat"] += nutrition["fat"] * quantity
-
-    # meal_type = get_current_meal_type()
-
-    # meal_id = save_meal(
-    #     meal_summary,
-    #     total_nutrition,
-    #     meal_type=meal_type
-    # )
     return {
         "filename": file.filename,
-
-        # "meal_id": meal_id,
-        # "meal_type": meal_type,
         "meal_type": get_current_meal_type(),
         "foods": foods,
-
         "meal_summary": meal_summary,
-
         "detections": detections,
-
         "total_objects": len(detections),
-
-        "total_nutrition": {
-            "calories": total_nutrition["calories"],
-            "protein": round(total_nutrition["protein"], 2),
-            "carbs": round(total_nutrition["carbs"], 2),
-            "fat": round(total_nutrition["fat"], 2)
-        }
+        "total_nutrition": total_nutrition
     }
 
 @app.post("/save-meal")

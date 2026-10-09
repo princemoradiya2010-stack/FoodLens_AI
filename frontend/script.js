@@ -42,6 +42,7 @@ const elements = {
   todayMealCount: document.getElementById("today-meal-count"),
   suggestionsList: document.getElementById("suggestions-list"),
   mealSummary: document.getElementById("meal-summary"),
+  nutritionNote: document.getElementById("nutrition-note"),
   resultMealType: document.getElementById("result-meal-type"),
   nutritionDistribution: document.getElementById("nutrition-distribution"),
   analysisStatus: document.getElementById("analysis-status"),
@@ -320,12 +321,11 @@ async function handleAnalyze() {
       throw new Error(payload.error);
     }
 
-    if (!payload || !Array.isArray(payload.detections) || !Array.isArray(payload.meal_summary)) {
+    if (!payload || !Array.isArray(payload.detections)) {
       throw new Error("The prediction response is missing detection data.");
     }
 
-    const detections = Array.isArray(payload.detections) ? payload.detections : [];
-    const groupedFoods = groupDetections(detections, payload.meal_summary || []);
+    const groupedFoods = groupDetections(payload.detections, payload.meal_summary);
     const totalNutrition = calculateMealNutrition(groupedFoods);
     state.activeResult = payload;
     state.groupedFoods = groupedFoods;
@@ -336,6 +336,7 @@ async function handleAnalyze() {
     elements.mealSummary.hidden = groupedFoods.length === 0;
     elements.resultMealType.textContent = `🍽 ${capitalizeWords(payload.meal_type || getCurrentMealType())}`;
     renderMealNutrition(totalNutrition);
+    renderNutritionNote(groupedFoods);
     renderNutritionDistribution(totalNutrition);
 
     const savableFoods = groupedFoods.filter(isSavableFoodGroup);
@@ -353,10 +354,12 @@ async function handleAnalyze() {
     }
   } catch (error) {
     console.error("Analyze error:", error);
+    const message = error instanceof Error ? error.message : "An unexpected error occurred while analyzing this image.";
     elements.resultsState.className = "result-state";
-    elements.resultsState.innerHTML = "<p>FoodLens couldn't connect to the AI server. Please make sure the backend is running.</p>";
+    elements.resultsState.textContent = message;
     elements.addMealActions.hidden = true;
-    showFriendlyMessage("FoodLens couldn't connect to the AI server. Please make sure the backend is running.");
+    elements.analysisStatus.textContent = message;
+    showFriendlyMessage(message);
   } finally {
     elements.analyzeBtn.disabled = false;
     elements.analyzeBtn.classList.remove("loading");
@@ -410,10 +413,11 @@ async function handleAddMeal() {
     showFriendlyMessage("✓ Meal added successfully to today's meals!");
   } catch (error) {
     console.error("Unable to save meal:", error);
+    const message = error instanceof Error ? error.message : "An unexpected error occurred while saving this meal.";
     elements.addMealButton.disabled = false;
     elements.addMealButton.textContent = "❌ Try Again";
-    elements.addMealMessage.textContent = "Unable to save the meal. Please make sure the FoodLens backend is running.";
-    showFriendlyMessage("Unable to save the meal. Please make sure the FoodLens backend is running.");
+    elements.addMealMessage.textContent = message;
+    showFriendlyMessage(message);
   } finally {
     state.isSavingMeal = false;
   }
@@ -450,7 +454,8 @@ function groupDetections(detections, mealSummary = []) {
   const groups = new Map();
   const summaries = new Map();
 
-  mealSummary.forEach((item) => {
+  (Array.isArray(mealSummary) ? mealSummary : []).forEach((item) => {
+    if (!item || typeof item !== "object") return;
     const key = normalizeFoodName(item.food);
     if (!key) return;
     const existing = summaries.get(key);
@@ -458,7 +463,9 @@ function groupDetections(detections, mealSummary = []) {
       existing.quantity += Number(item.quantity) || 0;
       existing.hasNutrition = existing.hasNutrition && ["calories", "protein", "carbs", "fat"].every((nutrient) => hasNumericValue(item[nutrient]));
       ["calories", "protein", "carbs", "fat"].forEach((nutrient) => {
-        existing.totalNutrition[nutrient] += Number(item[nutrient]) || 0;
+        if (hasNumericValue(item[nutrient])) {
+          existing.totalNutrition[nutrient] = (existing.totalNutrition[nutrient] || 0) + Number(item[nutrient]);
+        }
       });
       if (hasNumericValue(item.fiber)) {
         existing.totalNutrition.fiber = (existing.totalNutrition.fiber || 0) + Number(item.fiber);
@@ -471,10 +478,10 @@ function groupDetections(detections, mealSummary = []) {
         serving: item.serving || "",
         hasNutrition: ["calories", "protein", "carbs", "fat"].every((nutrient) => hasNumericValue(item[nutrient])),
         totalNutrition: {
-          calories: Number(item.calories) || 0,
-          protein: Number(item.protein) || 0,
-          carbs: Number(item.carbs) || 0,
-          fat: Number(item.fat) || 0,
+          calories: hasNumericValue(item.calories) ? Number(item.calories) : null,
+          protein: hasNumericValue(item.protein) ? Number(item.protein) : null,
+          carbs: hasNumericValue(item.carbs) ? Number(item.carbs) : null,
+          fat: hasNumericValue(item.fat) ? Number(item.fat) : null,
           fiber: hasNumericValue(item.fiber) ? Number(item.fiber) : null
         },
         hasFiber: hasNumericValue(item.fiber)
@@ -539,7 +546,6 @@ function groupDetections(detections, mealSummary = []) {
 
     const firstNutrition = group.detections.find((detection) => detection.nutrition)?.nutrition;
     const summary = summaries.get(key);
-    group.hasNutrition = group.hasNutrition || Boolean(summary?.hasNutrition);
     if (firstNutrition) {
       group.perServingNutrition = { ...firstNutrition };
     } else if (summary?.quantity > 0) {
@@ -550,12 +556,15 @@ function groupDetections(detections, mealSummary = []) {
       );
     }
 
-    if (summary) {
-      group.totalNutrition = { ...summary.totalNutrition };
-      if (!summary.hasFiber) group.totalNutrition.fiber = null;
-    } else {
-      group.totalNutrition = sumDetectionNutrition(group.detections);
-    }
+    const detectionNutrition = sumDetectionNutrition(group.detections);
+    group.totalNutrition = summary ? { ...summary.totalNutrition } : detectionNutrition;
+    Object.keys(group.totalNutrition).forEach((nutrient) => {
+      if (!hasNumericValue(group.totalNutrition[nutrient]) && hasNumericValue(detectionNutrition[nutrient])) {
+        group.totalNutrition[nutrient] = detectionNutrition[nutrient];
+      }
+    });
+    group.hasNutrition = ["calories", "protein", "carbs", "fat"]
+      .every((nutrient) => hasNumericValue(group.totalNutrition[nutrient]));
 
     if (!group.serving) group.serving = firstNutrition?.serving || "1 serving";
   });
@@ -564,40 +573,38 @@ function groupDetections(detections, mealSummary = []) {
 }
 
 function sumDetectionNutrition(detections) {
-  const total = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: null };
-  let hasFiber = false;
+  const total = { calories: null, protein: null, carbs: null, fat: null, fiber: null };
 
   detections.forEach((detection) => {
     const quantity = Number(detection.quantity) > 0 ? Number(detection.quantity) : 1;
     const nutrition = detection.nutrition || {};
     ["calories", "protein", "carbs", "fat"].forEach((nutrient) => {
-      total[nutrient] += (Number(nutrition[nutrient]) || 0) * quantity;
+      if (hasNumericValue(nutrition[nutrient])) {
+        total[nutrient] = (total[nutrient] || 0) + Number(nutrition[nutrient]) * quantity;
+      }
     });
     if (hasNumericValue(nutrition.fiber)) {
       total.fiber = (total.fiber || 0) + Number(nutrition.fiber) * quantity;
-      hasFiber = true;
     }
   });
 
-  if (!hasFiber) total.fiber = null;
   return total;
 }
 
 function calculateMealNutrition(groups) {
-  const total = { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: null };
-  let hasFiber = false;
+  const total = { calories: null, protein: null, carbs: null, fat: null, fiber: null };
 
   groups.forEach((group) => {
     ["calories", "protein", "carbs", "fat"].forEach((nutrient) => {
-      total[nutrient] += Number(group.totalNutrition?.[nutrient]) || 0;
+      if (hasNumericValue(group.totalNutrition?.[nutrient])) {
+        total[nutrient] = (total[nutrient] || 0) + Number(group.totalNutrition[nutrient]);
+      }
     });
     if (hasNumericValue(group.totalNutrition?.fiber)) {
       total.fiber = (total.fiber || 0) + Number(group.totalNutrition.fiber);
-      hasFiber = true;
     }
   });
 
-  if (!hasFiber) total.fiber = null;
   return total;
 }
 
@@ -627,7 +634,8 @@ function buildMealSummary(groups) {
     calories: group.totalNutrition.calories,
     protein: group.totalNutrition.protein,
     carbs: group.totalNutrition.carbs,
-    fat: group.totalNutrition.fat
+    fat: group.totalNutrition.fat,
+    fiber: group.totalNutrition.fiber
   }));
 }
 
@@ -649,7 +657,7 @@ function renderDetectionResults(groups) {
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", `Open details for ${group.food}`);
 
-    const nutrition = group.totalNutrition;
+    const nutrition = group.totalNutrition || {};
     const confidence = group.averageConfidence === null
       ? null
       : group.averageConfidence <= 1
@@ -667,26 +675,31 @@ function renderDetectionResults(groups) {
       <div class="confidence-meter"><span class="confidence-fill" style="width:${Math.min(confidence || 0, 100)}%"></span></div>
       <div class="nutrition-info">
         <div class="metric">
-          <span class="metric-label">Serving</span>
+          <span class="metric-label">Estimated serving</span>
           <span class="metric-value">${formatGroupServing(group)}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Calories</span>
-          <span class="metric-value">${formatNumber(nutrition.calories)} kcal</span>
+          <span class="metric-value">${formatNutritionValue(nutrition.calories, "kcal")}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Protein</span>
-          <span class="metric-value">${formatNumber(nutrition.protein)} g</span>
+          <span class="metric-value">${formatNutritionValue(nutrition.protein, "g")}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Carbs</span>
-          <span class="metric-value">${formatNumber(nutrition.carbs)} g</span>
+          <span class="metric-value">${formatNutritionValue(nutrition.carbs, "g")}</span>
         </div>
         <div class="metric" style="grid-column: span 2;">
           <span class="metric-label">Fat</span>
-          <span class="metric-value">${formatNumber(nutrition.fat)} g</span>
+          <span class="metric-value">${formatNutritionValue(nutrition.fat, "g")}</span>
+        </div>
+        <div class="metric" style="grid-column: span 2;">
+          <span class="metric-label">Fiber</span>
+          <span class="metric-value">${formatNutritionValue(nutrition.fiber, "g")}</span>
         </div>
       </div>
+      ${group.hasNutrition ? "" : '<p class="nutrition-unavailable">Nutrition data is unavailable or incomplete for this food.</p>'}
     `;
 
     card.addEventListener("click", () => openFoodModal(group));
@@ -716,10 +729,10 @@ function renderNutritionCards(summaryData) {
 
 function renderMealNutrition(totalNutrition) {
   const data = {
-    calories: {value: Number(totalNutrition.calories || 0), icon: "🔥", label: "Calories", colorClass: "primary"},
-    protein: {value: Number(totalNutrition.protein || 0), icon: "💪", label: "Protein", colorClass: "dark"},
-    carbs: {value: Number(totalNutrition.carbs || 0), icon: "🌾", label: "Carbohydrates", colorClass: "primary"},
-    fat: {value: Number(totalNutrition.fat || 0), icon: "🥑", label: "Fat", colorClass: "primary"},
+    calories: {value: hasNumericValue(totalNutrition.calories) ? Number(totalNutrition.calories) : null, icon: "🔥", label: "Calories", colorClass: "primary"},
+    protein: {value: hasNumericValue(totalNutrition.protein) ? Number(totalNutrition.protein) : null, icon: "💪", label: "Protein", colorClass: "dark"},
+    carbs: {value: hasNumericValue(totalNutrition.carbs) ? Number(totalNutrition.carbs) : null, icon: "🌾", label: "Carbohydrates", colorClass: "primary"},
+    fat: {value: hasNumericValue(totalNutrition.fat) ? Number(totalNutrition.fat) : null, icon: "🥑", label: "Fat", colorClass: "primary"},
     fiber: {value: hasNumericValue(totalNutrition.fiber) ? Number(totalNutrition.fiber) : null, icon: "🌿", label: "Fiber", colorClass: "dark"}
   };
 
@@ -729,12 +742,28 @@ function renderMealNutrition(totalNutrition) {
         <div class="nutrition-header">
           <span class="nutrition-icon">${item.icon}</span>
         </div>
-        <div class="nutrition-value">${item.value === null || item.value === undefined ? "—" : formatNumber(item.value)}${item.label === "Calories" || item.value === null || item.value === undefined ? "" : " g"}</div>
-        <span class="nutrition-label">${item.label === "Calories" ? "kcal" : item.label === "Fiber" && item.value === null ? "Fiber · unavailable" : item.label}</span>
+        <div class="nutrition-value">${item.value === null ? "—" : formatNumber(item.value)}${item.label === "Calories" || item.value === null ? "" : " g"}</div>
+        <span class="nutrition-label">${item.value === null ? `${item.label} · unavailable` : item.label === "Calories" ? "kcal" : item.label}</span>
         ${item.value === null ? "" : `<div class="progress-track"><span class="progress-fill ${item.colorClass}" style="width:${Math.min((Number(item.value) || 0) / 300 * 100, 100)}%"></span></div>`}
       </article>
     `)
     .join("");
+}
+
+function renderNutritionNote(groups) {
+  if (!elements.nutritionNote) return;
+  const unavailableCount = groups.filter((group) => !group.hasNutrition).length;
+  elements.nutritionNote.hidden = groups.length === 0;
+  elements.nutritionNote.textContent = [
+    "Nutrition values are estimates from the built-in database for typical servings; serving amounts are estimated as one serving per detected item.",
+    unavailableCount
+      ? `Meal totals exclude ${unavailableCount} detected ${unavailableCount === 1 ? "food" : "foods"} with incomplete nutrition data.`
+      : ""
+  ].filter(Boolean).join(" ");
+}
+
+function formatNutritionValue(value, unit) {
+  return hasNumericValue(value) ? `${formatNumber(Number(value))} ${unit}` : "Unavailable";
 }
 
 function renderNutritionDistribution(nutrition) {
@@ -943,11 +972,11 @@ function updateFoodModalCalories() {
   if (!group || !Number.isFinite(quantity) || quantity <= 0) return;
 
   const nutrition = nutritionAtQuantity(group, quantity);
-  elements.modalCalories.textContent = `${formatNumber(nutrition.calories)} kcal`;
-  elements.modalProtein.textContent = `${formatNumber(nutrition.protein)} g`;
-  elements.modalCarbs.textContent = `${formatNumber(nutrition.carbs)} g`;
-  elements.modalFat.textContent = `${formatNumber(nutrition.fat)} g`;
-  elements.modalFiber.textContent = nutrition.fiber === null ? "Not available" : `${formatNumber(nutrition.fiber)} g`;
+  elements.modalCalories.textContent = formatNutritionValue(nutrition.calories, "kcal");
+  elements.modalProtein.textContent = formatNutritionValue(nutrition.protein, "g");
+  elements.modalCarbs.textContent = formatNutritionValue(nutrition.carbs, "g");
+  elements.modalFat.textContent = formatNutritionValue(nutrition.fat, "g");
+  elements.modalFiber.textContent = hasNumericValue(nutrition.fiber) ? formatNutritionValue(nutrition.fiber, "g") : "Unavailable";
   elements.modalServing.textContent = formatGroupServing({ ...group, quantity });
 }
 
@@ -962,6 +991,7 @@ async function saveFoodQuantityChanges() {
   const totalNutrition = calculateMealNutrition(state.groupedFoods);
   renderDetectionResults(state.groupedFoods);
   renderMealNutrition(totalNutrition);
+  renderNutritionNote(state.groupedFoods);
   renderNutritionDistribution(totalNutrition);
   if (state.activeResult) state.activeResult = group;
 
@@ -975,10 +1005,12 @@ function nutritionAtQuantity(group, quantity) {
   const total = {};
 
   ["calories", "protein", "carbs", "fat"].forEach((nutrient) => {
-    if (Number.isFinite(Number(perServing[nutrient]))) {
+    if (hasNumericValue(perServing[nutrient])) {
       total[nutrient] = Number(perServing[nutrient]) * quantity;
+    } else if (hasNumericValue(group.totalNutrition?.[nutrient])) {
+      total[nutrient] = Number(group.totalNutrition[nutrient]) * quantity / originalQuantity;
     } else {
-      total[nutrient] = (Number(group.totalNutrition?.[nutrient]) || 0) * quantity / originalQuantity;
+      total[nutrient] = null;
     }
   });
 
@@ -998,7 +1030,10 @@ function formatPercent(value) {
 }
 
 function hasNumericValue(value) {
-  return value !== null && value !== undefined && Number.isFinite(Number(value));
+  return value !== null
+    && value !== undefined
+    && !(typeof value === "string" && value.trim() === "")
+    && Number.isFinite(Number(value));
 }
 
 function showFriendlyMessage(message) {
