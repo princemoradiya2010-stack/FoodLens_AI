@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from pathlib import Path
 from datetime import datetime
@@ -5,10 +6,12 @@ from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATABASE_PATH = BASE_DIR / "foodlens.db"
+_db_env = os.getenv("DATABASE_PATH")
+DATABASE_PATH = Path(_db_env) if _db_env else (BASE_DIR / "foodlens.db")
 
 
 def get_connection():
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DATABASE_PATH)
     connection.row_factory = sqlite3.Row
     return connection

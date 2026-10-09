@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://127.0.0.1:8000";
+const BACKEND_URL = (window.FOODLENS_CONFIG && window.FOODLENS_CONFIG.API_URL) || "http://127.0.0.1:8000";
 const API = window.FoodLensAPI;
 
 const state = {
@@ -238,7 +238,9 @@ function setBackendStatus(isOnline, healthData, error) {
 }
 
 async function fetchJson(url, options = {}) {
-  return API.request(url.replace("http://127.0.0.1:8000", ""), options);
+  const currentBase = (window.FOODLENS_CONFIG && window.FOODLENS_CONFIG.API_URL) || BACKEND_URL;
+  const path = url.replace(currentBase, "").replace("http://127.0.0.1:8000", "");
+  return API.request(path, options);
 }
 
 function handleSelectedFile(file) {

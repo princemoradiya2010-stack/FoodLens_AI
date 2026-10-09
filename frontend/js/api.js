@@ -1,12 +1,21 @@
 (() => {
-  const baseUrl = "http://127.0.0.1:8000";
+  function getBaseUrl() {
+    return (window.FOODLENS_CONFIG && window.FOODLENS_CONFIG.getApiUrl && window.FOODLENS_CONFIG.getApiUrl()) ||
+           (window.FOODLENS_CONFIG && window.FOODLENS_CONFIG.API_URL) ||
+           "http://127.0.0.1:8000";
+  }
 
   async function request(path, options = {}) {
+    const baseUrl = getBaseUrl();
     let response;
     try {
       response = await fetch(`${baseUrl}${path}`, options);
     } catch (error) {
-      throw new Error("Unable to connect to the FoodLens backend. Please check that it is running.");
+      const isRemote = !baseUrl.includes("127.0.0.1") && !baseUrl.includes("localhost");
+      const hint = isRemote
+        ? " (If hosted on Render free tier, the server may take up to 45s to wake up on first request.)"
+        : "";
+      throw new Error(`Unable to connect to FoodLens backend at ${baseUrl}.${hint}`);
     }
 
     let payload;

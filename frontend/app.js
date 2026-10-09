@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = (window.FOODLENS_CONFIG && window.FOODLENS_CONFIG.API_URL) || "http://127.0.0.1:8000";
 console.info("[FoodLens API] Base URL:", API_BASE_URL);
 
 const nutrientConfig = [
