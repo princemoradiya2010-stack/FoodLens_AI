@@ -12,7 +12,7 @@
 (() => {
   // === CONFIGURATION ===
   // When deploying to Render, put your Render service URL here:
-  const RENDER_BACKEND_URL = "https://foodlens-ai-backend.onrender.com";
+  const RENDER_BACKEND_URL = "https://foodlens-ai-dnwx.onrender.com";
 
   // Local development backend URL:
   const LOCAL_BACKEND_URL = "http://127.0.0.1:8000";

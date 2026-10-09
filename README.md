@@ -148,7 +148,7 @@ FoodLens_AI/
 
 1. In [frontend/js/config.js](file:///d:/FoodLens_AI/frontend/js/config.js), update `RENDER_BACKEND_URL` with your Render URL:
    ```javascript
-   const RENDER_BACKEND_URL = "https://your-backend-name.onrender.com";
+   const RENDER_BACKEND_URL = "https://foodlens-ai-dnwx.onrender.com";
    ```
 2. Commit and push:
    ```bash
@@ -161,7 +161,7 @@ FoodLens_AI/
 > **Tip:** You can also dynamically override the backend URL directly in the browser without redeploying:
 > Open DevTools console & run:
 > ```javascript
-> window.FOODLENS_CONFIG.setApiUrl("https://your-backend-name.onrender.com");
+> window.FOODLENS_CONFIG.setApiUrl("https://foodlens-ai-dnwx.onrender.com");
 > ```
 
 ---
