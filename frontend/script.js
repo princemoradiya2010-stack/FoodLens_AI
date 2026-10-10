@@ -29,6 +29,7 @@ const elements = {
   chooseFileBtn: document.getElementById("choose-file-btn"),
   cameraBtn: document.getElementById("camera-btn"),
   removeImageBtn: document.getElementById("remove-image-btn"),
+  changeImageBtn: document.getElementById("change-image-btn"),
   analyzeBtn: document.getElementById("analyze-btn"),
   resultsState: document.getElementById("results-state"),
   detectionGrid: document.getElementById("detection-grid"),
@@ -117,8 +118,13 @@ function bindNavigation() {
 
 function bindUploadInteractions() {
   if (!elements.uploadDropzone) return;
+  elements.uploadDropzone.addEventListener("click", (event) => {
+    if (event.target.closest("button, input, a")) return;
+    elements.imageInput.click();
+  });
   elements.chooseFileBtn.addEventListener("click", () => elements.imageInput.click());
   elements.cameraBtn.addEventListener("click", () => elements.cameraInput.click());
+  elements.changeImageBtn.addEventListener("click", () => elements.imageInput.click());
   elements.removeImageBtn.addEventListener("click", handleRemoveImage);
   elements.analyzeBtn.addEventListener("click", handleAnalyze);
   elements.addMealButton.addEventListener("click", handleAddMeal);
@@ -244,8 +250,11 @@ async function fetchJson(url, options = {}) {
 }
 
 function handleSelectedFile(file) {
-  if (!file.type.startsWith("image/")) {
-    showFriendlyMessage("Please upload a valid image file.");
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
+  const fileExt = (file.name.toLowerCase().match(/\.[^.]+$/) || [""])[0];
+  if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
+    showFriendlyMessage("Please upload a JPG, PNG, or WEBP image.");
     return;
   }
 
@@ -261,6 +270,7 @@ function handleSelectedFile(file) {
 
   elements.previewFileName.textContent = file.name;
   elements.removeImageBtn.hidden = false;
+  elements.changeImageBtn.hidden = false;
   elements.analyzeBtn.disabled = false;
   elements.detectionGrid.innerHTML = "";
   elements.mealSummary.hidden = true;
@@ -281,6 +291,7 @@ function handleRemoveImage() {
   elements.imagePreview.src = "";
   elements.previewFileName.textContent = "";
   elements.removeImageBtn.hidden = true;
+  elements.changeImageBtn.hidden = true;
   elements.analyzeBtn.disabled = true;
   elements.detectionGrid.innerHTML = "";
   elements.mealSummary.hidden = true;
@@ -312,8 +323,8 @@ async function handleAnalyze() {
 
   elements.analyzeBtn.disabled = true;
   elements.analyzeBtn.classList.add("loading");
-  elements.analyzeBtn.innerHTML = '<span class="button-spinner" aria-hidden="true"></span> Analyzing your meal';
-  elements.analysisStatus.textContent = "Detecting food and calculating nutrition…";
+  elements.analyzeBtn.innerHTML = '<span class="button-spinner" aria-hidden="true"></span> Analyzing your meal...';
+  elements.analysisStatus.textContent = "Analyzing your meal...";
   elements.imagePreviewWrap.classList.add("is-scanning");
 
   try {
@@ -365,7 +376,7 @@ async function handleAnalyze() {
   } finally {
     elements.analyzeBtn.disabled = false;
     elements.analyzeBtn.classList.remove("loading");
-    elements.analyzeBtn.innerHTML = 'Analyze food <span aria-hidden="true">→</span>';
+    elements.analyzeBtn.innerHTML = 'Scan Food <span aria-hidden="true">→</span>';
     elements.imagePreviewWrap.classList.remove("is-scanning");
     elements.analysisStatus.textContent ||= "Analysis finished.";
   }

@@ -1,5 +1,8 @@
 .page-heading + .scanner { padding-top: 20px; }
 .page-heading + .scanner .dropzone { min-height: 350px; }
+.scanner .dropzone { cursor: pointer; }
+.scanner .dropzone:hover:not(.dragover) { border-color: rgba(31, 107, 79, 0.55); background: linear-gradient(135deg, rgba(245, 252, 247, 0.98), rgba(222, 242, 229, 0.95)); }
+.scanner .dropzone:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .scanner .upload-card { max-width: 980px; margin: 0 auto; }
 .scanner .results { scroll-margin-top: 86px; }
 .scanner .confidence-meter { margin-top: 8px; }
