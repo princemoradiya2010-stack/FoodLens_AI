@@ -1,0 +1,313 @@
+/* ==========================================================
+   FoodLens AI - animations.css
+   All micro-animations, scroll reveals, keyframes & effects
+   ========================================================== */
+
+/* ----------------------------------------------------------
+   1. KEYFRAMES
+   ---------------------------------------------------------- */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes floatA {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-10px) rotate(4deg); }
+  66%       { transform: translateY(-5px) rotate(-3deg); }
+}
+@keyframes floatB {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(-5deg); }
+  66%       { transform: translateY(-14px) rotate(2deg); }
+}
+@keyframes floatC {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(6deg); }
+}
+@keyframes floatD {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  40%       { transform: translateY(-7px) rotate(-4deg); }
+  80%       { transform: translateY(-11px) rotate(3deg); }
+}
+
+@keyframes scanPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(31, 107, 79, 0.38); }
+  60%  { box-shadow: 0 0 0 16px rgba(31, 107, 79, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(31, 107, 79, 0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -600px 0; }
+  to   { background-position: 600px 0; }
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(45, 167, 116, 0.5); }
+  50%       { box-shadow: 0 0 0 8px rgba(45, 167, 116, 0); }
+}
+
+@keyframes progressFill {
+  from { width: 0%; }
+}
+
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.35; }
+  to   { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ----------------------------------------------------------
+   2. SCROLL REVEAL
+   ---------------------------------------------------------- */
+
+.fl-animate-up,
+.fl-animate-left,
+.fl-animate-right,
+.fl-animate-scale,
+.fl-animate-fade {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fl-animate-up    { transform: translateY(30px); }
+.fl-animate-left  { transform: translateX(-30px); }
+.fl-animate-right { transform: translateX(30px); }
+.fl-animate-scale { transform: scale(0.9); }
+.fl-animate-fade  { transform: none; }
+
+.fl-animate-up.fl-reveal,
+.fl-animate-left.fl-reveal,
+.fl-animate-right.fl-reveal,
+.fl-animate-scale.fl-reveal,
+.fl-animate-fade.fl-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.fl-delay-1 { transition-delay: 0.08s; }
+.fl-delay-2 { transition-delay: 0.16s; }
+.fl-delay-3 { transition-delay: 0.24s; }
+.fl-delay-4 { transition-delay: 0.32s; }
+.fl-delay-5 { transition-delay: 0.40s; }
+
+/* ----------------------------------------------------------
+   3. FLOATING FOOD BLOBS
+   ---------------------------------------------------------- */
+
+.food-1 { animation: floatA 5.5s ease-in-out infinite; }
+.food-2 { animation: floatB 6.2s ease-in-out infinite 0.8s; }
+.food-3 { animation: floatC 7.0s ease-in-out infinite 1.4s; }
+.food-4 { animation: floatD 5.8s ease-in-out infinite 0.4s; }
+
+.showcase-item-one   { animation: floatA 4.8s ease-in-out infinite; }
+.showcase-item-two   { animation: floatB 5.6s ease-in-out infinite 0.6s; }
+.showcase-item-three { animation: floatC 6.4s ease-in-out infinite 1.2s; }
+.showcase-item-four  { animation: floatD 5.2s ease-in-out infinite 0.3s; }
+.showcase-item-five  { animation: floatA 7.0s ease-in-out infinite 1.8s; }
+
+/* ----------------------------------------------------------
+   4. STATUS DOT PULSE
+   ---------------------------------------------------------- */
+
+.status-dot {
+  animation: dotPulse 2.2s ease-in-out infinite;
+}
+
+/* ----------------------------------------------------------
+   5. HERO ENTRANCE
+   ---------------------------------------------------------- */
+
+.hero-content {
+  animation: fadeUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-visual {
+  animation: fadeUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+.hero-greeting {
+  animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+.hero h1 {
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+.hero-actions {
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.36s both;
+}
+
+/* ----------------------------------------------------------
+   6. SCANNER SHOWCASE
+   ---------------------------------------------------------- */
+
+.showcase-rim {
+  animation: scanPulse 2.8s ease-out infinite;
+}
+.scanner-showcase {
+  animation: scaleIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* ----------------------------------------------------------
+   7. CARD HOVER LIFTS
+   ---------------------------------------------------------- */
+
+.nutrition-card,
+.detection-card,
+.quick-action-card,
+.suggestion-card,
+.history-card-button,
+.mini-stat {
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease;
+}
+
+.nutrition-card:hover,
+.detection-card:hover,
+.suggestion-card:hover,
+.mini-stat:hover {
+  transform: translateY(-4px) scale(1.012);
+  box-shadow: 0 18px 42px rgba(27, 44, 35, 0.13);
+}
+
+/* ----------------------------------------------------------
+   8. PROGRESS BAR ANIMATED FILL
+   ---------------------------------------------------------- */
+
+.progress-bar {
+  animation: progressFill 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-play-state: paused;
+}
+.progress-bar.fl-reveal {
+  animation-play-state: running;
+}
+
+/* ----------------------------------------------------------
+   9. SKELETON SHIMMER
+   ---------------------------------------------------------- */
+
+.fl-skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0eb 25%,
+    #e4eae5 50%,
+    #f0f0eb 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 10px;
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+}
+.fl-skeleton * { visibility: hidden; }
+
+/* ----------------------------------------------------------
+   10. BUTTON RIPPLE
+   ---------------------------------------------------------- */
+
+.primary-btn,
+.secondary-btn {
+  position: relative;
+  overflow: hidden;
+}
+.primary-btn .ripple-wave,
+.secondary-btn .ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-top: -30px;
+  margin-left: -30px;
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  animation: ripple 0.55s linear forwards;
+}
+
+/* ----------------------------------------------------------
+   11. NAVBAR SCROLL SHADOW
+   ---------------------------------------------------------- */
+
+.topbar {
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+.topbar.scrolled {
+  box-shadow: 0 4px 28px rgba(27, 44, 35, 0.1);
+  background: rgba(249, 247, 242, 0.96);
+}
+
+/* ----------------------------------------------------------
+   12. TOAST OVERRIDE
+   ---------------------------------------------------------- */
+
+.toast {
+  animation: toastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ----------------------------------------------------------
+   13. BRAND ICON SPIN ON HOVER
+   ---------------------------------------------------------- */
+
+.brand-icon {
+  transition: transform 0.3s ease;
+}
+.brand:hover .brand-icon {
+  transform: rotate(20deg) scale(1.1);
+}
+
+/* ----------------------------------------------------------
+   14. PAGE ENTRANCE
+   ---------------------------------------------------------- */
+
+.page-content {
+  animation: fadeIn 0.4s ease both;
+}
+.page-heading {
+  animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ----------------------------------------------------------
+   15. REDUCED MOTION
+   ---------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .food-1, .food-2, .food-3, .food-4,
+  .showcase-item-one, .showcase-item-two,
+  .showcase-item-three, .showcase-item-four, .showcase-item-five,
+  .status-dot, .showcase-rim, .fl-skeleton {
+    animation: none !important;
+  }
+  .fl-animate-up, .fl-animate-left,
+  .fl-animate-right, .fl-animate-scale, .fl-animate-fade {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
