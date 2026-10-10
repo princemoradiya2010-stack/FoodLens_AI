@@ -12,3 +12,5 @@ services:
         value: 3.11.9
       - key: ALLOWED_ORIGIN_REGEX
         value: ^https://.*\.vercel\.app$
+      - key: DATABASE_URL
+        sync: false   # Set this secret manually in the Render dashboard → Environment
