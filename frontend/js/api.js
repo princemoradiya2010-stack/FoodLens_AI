@@ -48,6 +48,16 @@
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        if (window.FoodLensAuth && window.FoodLensAuth.clearAuth) {
+          window.FoodLensAuth.clearAuth();
+        }
+        const page = document.body ? document.body.dataset.page : null;
+        if (page && ["scan", "history", "today", "insights", "profile"].includes(page)) {
+          const file = window.location.pathname.split("/").pop() || `${page}.html`;
+          window.location.replace(`login.html?redirect=${encodeURIComponent(file)}`);
+        }
+      }
       const detail = typeof payload === "string" ? payload : payload?.detail || payload?.error;
       throw new Error(typeof detail === "string" ? detail : `FoodLens request failed (${response.status}).`);
     }

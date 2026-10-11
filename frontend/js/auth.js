@@ -129,6 +129,25 @@
     }
   }
 
+  const PROTECTED_PAGES = ["scan", "history", "today", "insights", "profile"];
+
+  function enforcePageProtection() {
+    const page = document.body ? document.body.dataset.page : null;
+    if (page && PROTECTED_PAGES.includes(page)) {
+      if (!isAuthenticated()) {
+        const file = window.location.pathname.split("/").pop() || `${page}.html`;
+        window.location.replace(`login.html?redirect=${encodeURIComponent(file)}`);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Attempt early check if body already parsed
+  try {
+    if (document.body) enforcePageProtection();
+  } catch (_) {}
+
   window.FoodLensAuth = Object.freeze({
     getToken,
     getUser,
@@ -138,10 +157,12 @@
     clearAuth,
     logout,
     syncCurrentUser,
-    updateNavigation
+    updateNavigation,
+    enforcePageProtection
   });
 
   document.addEventListener("DOMContentLoaded", () => {
+    if (!enforcePageProtection()) return;
     updateNavigation();
     if (isAuthenticated()) {
       syncCurrentUser();

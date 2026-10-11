@@ -57,8 +57,21 @@ document.addEventListener("DOMContentLoaded", () => {
   tabLogin.addEventListener("click", () => switchTab("login"));
   tabRegister.addEventListener("click", () => switchTab("register"));
 
-  // Check URL query parameters (e.g. ?mode=register)
+  // Check URL query parameters (e.g. ?mode=register or ?redirect=scan.html)
   const urlParams = new URLSearchParams(window.location.search);
+  const redirectTarget = urlParams.get("redirect");
+  if (redirectTarget) {
+    const pageLabels = {
+      "scan.html": "Scan Food",
+      "history.html": "Meal History",
+      "today.html": "Today's Meals",
+      "insights.html": "Nutrition Insights",
+      "profile.html": "Profile & Goals"
+    };
+    const targetLabel = pageLabels[redirectTarget] || "this feature";
+    authSubtitle.innerHTML = `🔒 Sign in or create an account to access <strong>${targetLabel}</strong>.`;
+  }
+
   if (urlParams.get("mode") === "register") {
     switchTab("register");
   }
@@ -151,9 +164,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await api.login({ username_or_email: username, password });
       auth.saveAuth(res.token, res.user, res.targets);
       ui.showToast(`Welcome back, ${res.user.username}!`, "success");
+      const dest = redirectTarget && redirectTarget !== "login.html" ? redirectTarget : "index.html";
       window.setTimeout(() => {
-        window.location.href = "profile.html";
-      }, 500);
+        window.location.href = dest;
+      }, 450);
     } catch (err) {
       ui.showToast(err.message, "error");
       submitBtn.disabled = false;
@@ -201,9 +215,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       auth.saveAuth(res.token, res.user, res.targets);
       ui.showToast("Account created! Personalized nutrition goals initialized.", "success");
+      const dest = redirectTarget && redirectTarget !== "login.html" ? redirectTarget : "index.html";
       window.setTimeout(() => {
-        window.location.href = "profile.html";
-      }, 500);
+        window.location.href = dest;
+      }, 450);
     } catch (err) {
       ui.showToast(err.message, "error");
       submitBtn.disabled = false;

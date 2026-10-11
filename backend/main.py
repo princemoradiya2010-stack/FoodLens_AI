@@ -509,8 +509,8 @@ def get_goals(user=Depends(get_current_user_optional)):
 
 
 @app.get("/meals")
-def get_meals(user=Depends(get_current_user_optional)):
-    user_id = user["id"] if user else None
+def get_meals(user=Depends(get_current_user_required)):
+    user_id = user["id"]
     meals = get_all_meals(user_id=user_id)
     return {
         "total_meals": len(meals),
@@ -519,14 +519,14 @@ def get_meals(user=Depends(get_current_user_optional)):
 
 
 @app.get("/summary/today")
-def today_summary(user=Depends(get_current_user_optional)):
-    user_id = user["id"] if user else None
+def today_summary(user=Depends(get_current_user_required)):
+    user_id = user["id"]
     return get_today_summary(user_id=user_id)
 
 
 @app.get("/summary/progress")
-def summary_progress(user=Depends(get_current_user_optional)):
-    user_id = user["id"] if user else None
+def summary_progress(user=Depends(get_current_user_required)):
+    user_id = user["id"]
     summary = get_today_summary(user_id=user_id)
     active_goals = get_active_goals(user)
 
@@ -563,9 +563,9 @@ def summary_progress(user=Depends(get_current_user_optional)):
 
 
 @app.get("/meals/{meal_id}")
-def get_meal(meal_id: int):
+def get_meal(meal_id: int, user=Depends(get_current_user_required)):
     meal = get_meal_by_id(meal_id)
-    if meal is None:
+    if meal is None or (meal.get("user_id") is not None and meal.get("user_id") != user["id"]):
         return {
             "error": "Meal not found"
         }
@@ -573,13 +573,13 @@ def get_meal(meal_id: int):
 
 
 @app.get("/recommendations/today")
-def today_recommendations(user=Depends(get_current_user_optional)):
-    user_id = user["id"] if user else None
+def today_recommendations(user=Depends(get_current_user_required)):
+    user_id = user["id"]
     summary = get_today_summary(user_id=user_id)
     meal_type = get_current_meal_type()
     active_goals = get_active_goals(user)
-    user_goal = user.get("goal", "weight_loss") if user else "weight_loss"
-    user_weight = float(user.get("weight", 70.0)) if user else 70.0
+    user_goal = user.get("goal", "weight_loss")
+    user_weight = float(user.get("weight", 70.0))
 
     recommendations = generate_recommendations(
         summary=summary,
@@ -601,7 +601,7 @@ def today_recommendations(user=Depends(get_current_user_optional)):
 # --------------------------------------------------
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+async def predict(file: UploadFile = File(...), user=Depends(get_current_user_required)):
     # 1. Check file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Please upload an image file.")
@@ -721,8 +721,8 @@ async def predict(file: UploadFile = File(...)):
 
 
 @app.post("/save-meal")
-def save_meal_api(request: SaveMealRequest, user=Depends(get_current_user_optional)):
-    user_id = user["id"] if user else None
+def save_meal_api(request: SaveMealRequest, user=Depends(get_current_user_required)):
+    user_id = user["id"]
     meal_id = save_meal(
         request.meal_summary,
         request.total_nutrition,

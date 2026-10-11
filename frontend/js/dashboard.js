@@ -50,14 +50,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   status.innerHTML = '<span class="status-dot"></span><span>Connecting to FoodLens…</span>';
 
-  // Fetch backend data
-  const results = await Promise.allSettled([
-    api.getHealth(), api.getTodaySummary(), api.getProgress(), api.getGoals(),
-    api.getMeals(), api.getRecommendations()
-  ]);
-  const [health, summary, progressResult, goalsResult, mealsResult, recommendationsResult] = results.map((result) =>
-    result.status === "fulfilled" ? result.value : null
-  );
+  // Fetch backend data: visitors only fetch health and goals
+  let health = null, summary = null, progressResult = null, goalsResult = null, mealsResult = null, recommendationsResult = null;
+
+  if (isUserLoggedIn) {
+    const results = await Promise.allSettled([
+      api.getHealth(), api.getTodaySummary(), api.getProgress(), api.getGoals(),
+      api.getMeals(), api.getRecommendations()
+    ]);
+    [health, summary, progressResult, goalsResult, mealsResult, recommendationsResult] = results.map((result) =>
+      result.status === "fulfilled" ? result.value : null
+    );
+  } else {
+    const results = await Promise.allSettled([
+      api.getHealth(), api.getGoals()
+    ]);
+    health = results[0].status === "fulfilled" ? results[0].value : null;
+    goalsResult = results[1].status === "fulfilled" ? results[1].value : null;
+  }
 
   const online = Boolean(health);
   status.classList.toggle("offline", !online);
