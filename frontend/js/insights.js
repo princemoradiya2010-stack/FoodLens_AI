@@ -6,23 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const recommendations = document.getElementById("recommendations-list");
   progress.innerHTML = '<div class="loading-state">Loading nutrition progress…</div>';
   weekly.innerHTML = '<div class="loading-state">Loading meal history…</div>';
-  const auth = window.FoodLensAuth;
-  if (auth && !auth.isAuthenticated()) {
-    const heading = document.querySelector(".page-heading");
-    if (heading && !document.getElementById("visitor-insights-banner")) {
-      const banner = document.createElement("div");
-      banner.id = "visitor-insights-banner";
-      banner.className = "guest-callout-card";
-      banner.innerHTML = `
-        <div>
-          <strong>Visitor Mode · Personal History Locked</strong>
-          <p>Sign in to view your personal 7-day meal charts, or launch Prince's live demo profile (78kg · 7 days of meals).</p>
-        </div>
-        <a href="login.html">⚡ Try Demo Profile (Prince · 78kg) →</a>
-      `;
-      heading.appendChild(banner);
-    }
-  }
+  recommendations.innerHTML = '<div class="loading-state">Loading nutrition insights…</div>';
 
   const [progressResult, goalsResult, recommendationsResult, mealsResult] = await Promise.allSettled([
     api.getProgress(), api.getGoals(), api.getRecommendations(), api.getMeals()

@@ -4,25 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("history-list");
   const filter = document.getElementById("history-filter");
   const custom = document.getElementById("custom-date-filter");
-  const from = document.getElementById("history-date-from");
-  const auth = window.FoodLensAuth;
-  if (auth && !auth.isAuthenticated()) {
-    const heading = document.querySelector(".page-heading");
-    if (heading && !document.getElementById("visitor-history-banner")) {
-      const banner = document.createElement("div");
-      banner.id = "visitor-history-banner";
-      banner.className = "guest-callout-card";
-      banner.innerHTML = `
-        <div>
-          <strong>Visitor Mode · Personal History Locked</strong>
-          <p>Sign in to view your saved history, or launch Prince's demo account to explore 7 days of meal logs.</p>
-        </div>
-        <a href="login.html">⚡ Try Demo Profile (Prince · 78kg) →</a>
-      `;
-      heading.appendChild(banner);
-    }
-  }
-
+  const to = document.getElementById("history-date-to");
   list.innerHTML = '<div class="loading-state">Loading meal history…</div>';
   let allMeals = [];
 

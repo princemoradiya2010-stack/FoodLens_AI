@@ -48,45 +48,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Handle 1-Click Visitor Demo Login (Prince · 78kg · Stable Weight)
-  if (visitorDemoBtn) {
-    visitorDemoBtn.addEventListener("click", async () => {
-      visitorDemoBtn.disabled = true;
-      visitorDemoBtn.textContent = "Launching Demo Profile…";
-
-      const demoUser = "prince";
-      const demoPass = "password123";
-
-      try {
-        const res = await api.login({ username_or_email: demoUser, password: demoPass });
-        auth.saveAuth(res.token, res.user, res.targets);
-        ui.showToast("Logged in as Prince (78kg · Stable Weight)! 7-day history unlocked.", "success");
-        window.setTimeout(() => { window.location.reload(); }, 350);
-      } catch {
-        try {
-          const regRes = await api.register({
-            username: demoUser,
-            email: "prince@foodlens.ai",
-            password: demoPass,
-            weight: 78.0,
-            height: 179.0,
-            age: 20,
-            gender: "male",
-            activity_level: "moderate",
-            goal: "maintenance"
-          });
-          auth.saveAuth(regRes.token, regRes.user, regRes.targets);
-          ui.showToast("Prince's demo account initialized & logged in!", "success");
-          window.setTimeout(() => { window.location.reload(); }, 350);
-        } catch (err) {
-          ui.showToast("Demo login failed: " + err.message, "error");
-          visitorDemoBtn.disabled = false;
-          visitorDemoBtn.textContent = "⚡ Instant Demo Login (78kg)";
-        }
-      }
-    });
-  }
-
   status.innerHTML = '<span class="status-dot"></span><span>Connecting to FoodLens…</span>';
 
   // Fetch backend data
