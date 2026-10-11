@@ -92,7 +92,15 @@
   }
 
   async function hydrateMeals(meals) {
-    const detailedMeals = await Promise.all(meals.map(async (meal) => {
+    if (!Array.isArray(meals) || meals.length === 0) return [];
+    // If backend already returned items, return immediately without additional requests
+    const hasItems = meals.every((m) => Array.isArray(m.items) && m.items.length > 0);
+    if (hasItems) {
+      return meals;
+    }
+    // Only hydrate meals missing items, up to first 10
+    const detailedMeals = await Promise.all(meals.slice(0, 10).map(async (meal) => {
+      if (Array.isArray(meal.items) && meal.items.length > 0) return meal;
       try {
         const detail = await api.getMeal(meal.id);
         return { ...meal, items: Array.isArray(detail.items) ? detail.items : [], itemsLoading: false };
@@ -100,7 +108,7 @@
         return { ...meal, items: [], itemsLoading: false, detailsError: error.message };
       }
     }));
-    return detailedMeals;
+    return [...detailedMeals, ...meals.slice(10)];
   }
 
   async function bindMealDetails(list) {

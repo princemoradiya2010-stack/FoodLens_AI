@@ -4,11 +4,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const list = document.getElementById("history-list");
   const filter = document.getElementById("history-filter");
   const custom = document.getElementById("custom-date-filter");
+  const from = document.getElementById("history-date-from");
   const to = document.getElementById("history-date-to");
-  list.innerHTML = '<div class="loading-state">Loading meal history…</div>';
+
+  if (list) {
+    list.innerHTML = '<div class="loading-state">Loading meal history…</div>';
+  }
+
   let allMeals = [];
 
   function applyFilter() {
+    if (!list) return;
     const now = new Date();
     const today = ui.localDateKey(now);
     const yesterday = new Date(now);
@@ -18,33 +24,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     startOfWeek.setHours(0, 0, 0, 0);
     startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7));
     const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+
+    const filterVal = filter ? filter.value : "all";
+    const fromVal = from ? from.value : "";
+    const toVal = to ? to.value : "";
+
     const results = allMeals.filter((meal) => {
       const date = new Date(meal.meal_date);
       const key = ui.localDateKey(date);
-      if (filter.value === "today") return key === today;
-      if (filter.value === "yesterday") return key === yesterdayKey;
-      if (filter.value === "week") return date >= startOfWeek;
-      if (filter.value === "month") return key >= startOfMonth;
-      if (filter.value === "custom") return (!from.value || key >= from.value) && (!to.value || key <= to.value);
+      if (filterVal === "today") return key === today;
+      if (filterVal === "yesterday") return key === yesterdayKey;
+      if (filterVal === "week") return date >= startOfWeek;
+      if (filterVal === "month") return key >= startOfMonth;
+      if (filterVal === "custom") return (!fromVal || key >= fromVal) && (!toVal || key <= toVal);
       return true;
     });
+
     list.innerHTML = results.length
       ? results.map(ui.renderMealCard).join("")
       : '<div class="empty-state-message">No meals match this time period.</div>';
   }
 
-  filter.addEventListener("change", () => {
-    custom.hidden = filter.value !== "custom";
-    applyFilter();
+  if (filter) {
+    filter.addEventListener("change", () => {
+      if (custom) custom.hidden = filter.value !== "custom";
+      applyFilter();
+    });
+  }
+
+  [from, to].filter(Boolean).forEach((input) => {
+    input.addEventListener("change", applyFilter);
   });
-  [from, to].forEach((input) => input.addEventListener("change", applyFilter));
-  await ui.bindMealDetails(list);
+
+  if (list) {
+    await ui.bindMealDetails(list);
+  }
+
   try {
     const response = await api.getMeals();
-    allMeals = await ui.hydrateMeals(Array.isArray(response.meals) ? response.meals : []);
+    const rawMeals = Array.isArray(response?.meals) ? response.meals : [];
+    allMeals = await ui.hydrateMeals(rawMeals);
     applyFilter();
   } catch (error) {
-    list.innerHTML = `<div class="empty-state-message">${ui.escapeHtml(error.message)}</div>`;
-    ui.showToast(error.message, "error");
+    if (list) {
+      list.innerHTML = `<div class="empty-state-message">${ui.escapeHtml(error.message || "Failed to load meal history.")}</div>`;
+    }
+    ui.showToast(error.message || "Failed to load meals", "error");
   }
 });

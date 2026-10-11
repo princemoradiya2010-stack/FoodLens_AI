@@ -424,7 +424,7 @@ def save_meal(meal_summary, total_nutrition, meal_type="unknown", user_id=None, 
 
 
 def get_all_meals(user_id=None):
-    """Return all meals (optionally filtered by user_id) ordered by most recent first."""
+    """Return all meals (optionally filtered by user_id) with items, ordered by most recent first."""
     conn = get_connection()
     if user_id is not None:
         sql = """
@@ -458,11 +458,50 @@ def get_all_meals(user_id=None):
         """
         cursor = _run_execute(conn, sql)
 
-    meals = cursor.fetchall()
+    meals = [dict(meal) for meal in cursor.fetchall()]
     cursor.close()
-    conn.close()
 
-    return [dict(meal) for meal in meals]
+    if not meals:
+        conn.close()
+        return []
+
+    meal_ids = [m["id"] for m in meals]
+    items_by_meal = {m["id"]: [] for m in meals}
+
+    try:
+        if IS_POSTGRES:
+            items_sql = """
+                SELECT meal_id, food_name, quantity, calories, protein, carbs, fat
+                FROM meal_items
+                WHERE meal_id = ANY(%s)
+                ORDER BY id ASC
+            """
+            items_cursor = _run_execute(conn, items_sql, (meal_ids,))
+        else:
+            placeholders = ",".join(["?"] * len(meal_ids))
+            items_sql = f"""
+                SELECT meal_id, food_name, quantity, calories, protein, carbs, fat
+                FROM meal_items
+                WHERE meal_id IN ({placeholders})
+                ORDER BY id ASC
+            """
+            items_cursor = _run_execute(conn, items_sql, meal_ids)
+
+        for item in items_cursor.fetchall():
+            item_d = dict(item)
+            mid = item_d.get("meal_id")
+            if mid in items_by_meal:
+                items_by_meal[mid].append(item_d)
+        items_cursor.close()
+    except Exception as err:
+        print(f"Notice: Error batch fetching meal items: {err}")
+    finally:
+        conn.close()
+
+    for m in meals:
+        m["items"] = items_by_meal.get(m["id"], [])
+
+    return meals
 
 
 def get_today_summary(user_id=None):
