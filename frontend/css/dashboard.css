@@ -1,1 +1,157 @@
-.dashboard-latest .history-list { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+/* FoodLens AI - Dashboard & Visitor Landing Styles */
+.dashboard-latest .history-list {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+/* Visitor Information Showcase */
+.visitor-welcome-banner {
+  background: linear-gradient(135deg, #eef7f2 0%, #e2f3e8 100%);
+  border: 1px solid rgba(31, 107, 79, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  margin-top: 10px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(27, 44, 35, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.visitor-welcome-copy h2 {
+  margin: 0 0 8px;
+  font-size: 1.55rem;
+  color: var(--primary-deep);
+  letter-spacing: -0.03em;
+}
+
+.visitor-welcome-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.visitor-welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.btn-demo-primary {
+  padding: 13px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(31, 107, 79, 0.25);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-demo-primary:hover {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+}
+
+.btn-signin-secondary {
+  padding: 11px 20px;
+  background: #fff;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.btn-signin-secondary:hover {
+  background: #f0f8f3;
+}
+
+/* Visitor Feature Information Cards */
+.visitor-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.visitor-feature-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 24px;
+  box-shadow: 0 4px 16px rgba(27, 44, 35, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.visitor-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.visitor-feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--primary-deep);
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.visitor-feature-card h3 {
+  margin: 4px 0 0;
+  font-size: 1.1rem;
+  color: var(--primary-deep);
+}
+
+.visitor-feature-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.visitor-feature-tag {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--primary);
+  background: #f0f7f3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 820px) {
+  .visitor-welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 22px;
+  }
+  .visitor-welcome-actions {
+    width: 100%;
+  }
+  .visitor-features-grid {
+    grid-template-columns: 1fr;
+  }
+}

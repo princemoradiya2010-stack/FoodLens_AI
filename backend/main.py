@@ -138,6 +138,12 @@ app.add_middleware(
 
 create_tables()
 
+try:
+    from backend.demo_data import ensure_demo_user_seeded
+    ensure_demo_user_seeded()
+except Exception as _seed_err:
+    print("Notice: demo data initialization skipped:", _seed_err)
+
 FRONTEND_DIR = BASE_DIR / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/app", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")

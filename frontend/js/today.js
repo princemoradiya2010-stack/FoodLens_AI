@@ -4,6 +4,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totals = document.getElementById("today-totals");
   const list = document.getElementById("today-meals-list");
   const count = document.getElementById("today-count");
+
+  const auth = window.FoodLensAuth;
+  if (auth && !auth.isAuthenticated()) {
+    const heading = document.querySelector(".page-heading");
+    if (heading && !document.getElementById("visitor-today-banner")) {
+      const banner = document.createElement("div");
+      banner.id = "visitor-today-banner";
+      banner.className = "guest-callout-card";
+      banner.innerHTML = `
+        <div>
+          <strong>Visitor Mode · Personal Journal Locked</strong>
+          <p>Sign in to record your meals, or launch Prince's live demo profile (78kg · pre-loaded with meals).</p>
+        </div>
+        <a href="login.html">⚡ Try Demo Profile (Prince · 78kg) →</a>
+      `;
+      heading.appendChild(banner);
+    }
+  }
+
   totals.innerHTML = '<div class="loading-state">Loading today’s nutrition…</div>';
   list.innerHTML = '<div class="loading-state">Loading your meals…</div>';
 

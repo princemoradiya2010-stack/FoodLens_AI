@@ -211,33 +211,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Demo Login Quick-Action
+  // Demo Login Quick-Action (Prince · 78kg · Stable Weight)
   demoLoginBtn.addEventListener("click", async () => {
     demoLoginBtn.disabled = true;
-    demoLoginBtn.textContent = "Logging into demo profile…";
+    demoLoginBtn.textContent = "Logging into Prince's profile…";
 
-    const demoUser = "demo_user";
-    const demoPass = "demo1234";
+    const demoUser = "prince";
+    const demoPass = "password123";
 
     try {
       // Try login first
       const res = await api.login({ username_or_email: demoUser, password: demoPass });
       auth.saveAuth(res.token, res.user, res.targets);
-      ui.showToast("Logged in as Demo User!", "success");
+      ui.showToast("Logged in as Prince (78kg · Stable Weight)!", "success");
       window.setTimeout(() => { window.location.href = "profile.html"; }, 400);
     } catch {
       // If demo user doesn't exist yet, auto-register it
       try {
         const regRes = await api.register({
           username: demoUser,
-          email: "demo@foodlens.ai",
+          email: "prince@foodlens.ai",
           password: demoPass,
-          weight: 70.0,
-          height: 172.0,
-          age: 26,
+          weight: 78.0,
+          height: 179.0,
+          age: 20,
           gender: "male",
           activity_level: "moderate",
-          goal: "weight_loss"
+          goal: "maintenance"
         });
         auth.saveAuth(regRes.token, regRes.user, regRes.targets);
         ui.showToast("Demo profile created & logged in!", "success");
@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         ui.showToast("Demo login failed: " + err.message, "error");
         demoLoginBtn.disabled = false;
-        demoLoginBtn.textContent = "⚡ Try Demo User (Weight Loss · 70 kg)";
+        demoLoginBtn.textContent = "⚡ Try Demo User (Prince · 78 kg · Stable Weight)";
       }
     }
   });
