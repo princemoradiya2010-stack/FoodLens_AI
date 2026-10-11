@@ -355,10 +355,11 @@ def get_current_meal_type():
     return "other"
 
 
-def save_meal(meal_summary, total_nutrition, meal_type="unknown", user_id=None):
+def save_meal(meal_summary, total_nutrition, meal_type="unknown", user_id=None, meal_date=None):
     """Insert a meal and its food items. Returns the new meal id."""
     conn = get_connection()
-    meal_date = datetime.now().isoformat()
+    if not meal_date:
+        meal_date = datetime.now().isoformat()
 
     sql = """
         INSERT INTO meals (

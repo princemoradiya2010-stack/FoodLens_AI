@@ -211,7 +211,7 @@ def _background_startup():
 
     try:
         from backend.demo_data import ensure_demo_user_seeded
-        ensure_demo_user_seeded(clean_fake_history=True)
+        ensure_demo_user_seeded(seed_two_weeks=True)
     except Exception as err:
         logger.warning("Prince account setup notice: %s", err)
 
