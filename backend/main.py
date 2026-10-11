@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import tempfile
+import threading
 from typing import Optional
 
 # --------------------------------------------------
@@ -193,42 +194,54 @@ def get_yolo_model() -> Optional[YOLO]:
 # FastAPI Lifespan (Startup & Shutdown Management)
 # --------------------------------------------------
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Manages application startup and shutdown.
-    Ensures port binds promptly while heavy tasks are safely initialized with logging.
-    """
-    logger.info("=========================================")
-    logger.info("FoodLens AI Backend initializing...")
-    logger.info("Python version: %s", sys.version.split()[0])
-    logger.info("Base directory: %s", BASE_DIR)
-    logger.info("YOLO Config Dir: %s", os.environ.get("YOLO_CONFIG_DIR"))
-    logger.info("Listening Port: %s", os.environ.get("PORT", "8000"))
-    logger.info("=========================================")
-
-    # 1. Load YOLO Model
+def _background_startup():
+    """Initializes YOLO model, database schema, and user setup in background."""
+    logger.info("Background startup: loading YOLO model...")
     try:
         load_yolo_model()
     except Exception as err:
         logger.exception("YOLO initialization error: %s", err)
 
-    # 2. Initialize Database Tables
+    logger.info("Background startup: verifying database schema...")
     try:
-        logger.info("Verifying database schema...")
         create_tables()
         logger.info("Database schema verified.")
     except Exception as err:
         logger.warning("Database schema initialization warning: %s", err)
 
-    # 3. Seed Demo Account and Sample Meal Logs
     try:
         from backend.demo_data import ensure_demo_user_seeded
-        ensure_demo_user_seeded()
+        ensure_demo_user_seeded(clean_fake_history=True)
     except Exception as err:
-        logger.warning("Demo account seeding notice: %s", err)
+        logger.warning("Prince account setup notice: %s", err)
 
-    logger.info("FoodLens AI Backend is ready to accept requests.")
+    logger.info("Background startup sequence completed.")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manages application startup and shutdown.
+    Spawns background initialization immediately so Uvicorn binds the port without delay.
+    """
+    port = os.environ.get("PORT", "8000")
+    logger.info("=========================================")
+    logger.info("FoodLens AI Backend starting...")
+    logger.info("Python version: %s", sys.version.split()[0])
+    logger.info("Base directory: %s", BASE_DIR)
+    logger.info("YOLO Config Dir: %s", os.environ.get("YOLO_CONFIG_DIR"))
+    logger.info("Listening Port: %s", port)
+    logger.info("=========================================")
+
+    # Spawn background thread for model load and DB check so socket binds in <50ms
+    init_thread = threading.Thread(
+        target=_background_startup,
+        name="FoodLensStartupThread",
+        daemon=True
+    )
+    init_thread.start()
+
+    logger.info("FastAPI lifespan initialized. Socket will bind to 0.0.0.0:%s immediately.", port)
     yield
     logger.info("FoodLens AI Backend shutting down...")
 
@@ -315,7 +328,8 @@ def health():
     Lightweight health endpoint for Render and monitoring services.
     Reports API health and YOLO model readiness with diagnostics.
     """
-    current_model = get_yolo_model()
+    global model, model_load_error
+    current_model = model
     is_model_ready = current_model is not None and hasattr(current_model, "names")
     classes_count = len(current_model.names) if is_model_ready else 0
 
