@@ -24,7 +24,10 @@ else:
 def get_connection():
     """Return a database connection (PostgreSQL if DATABASE_URL set, else SQLite)."""
     if IS_POSTGRES:
-        return psycopg2.connect(DATABASE_URL)
+        url = DATABASE_URL
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        return psycopg2.connect(url, connect_timeout=15)
     else:
         SQLITE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(SQLITE_DB_PATH)

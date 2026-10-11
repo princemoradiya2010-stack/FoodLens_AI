@@ -10,7 +10,13 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: YOLO_CONFIG_DIR
+        value: /tmp/ultralytics_config
+      - key: MODEL_PATH
+        value: models/foodlens_yolo11s_best.pt
       - key: ALLOWED_ORIGIN_REGEX
         value: ^https://.*\.vercel\.app$
       - key: DATABASE_URL
-        sync: false   # Set this secret manually in the Render dashboard → Environment
+        sync: false   # Set this secret manually in Render dashboard → Environment

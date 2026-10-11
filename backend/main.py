@@ -1,10 +1,37 @@
 from pathlib import Path
 from collections import Counter
 from datetime import datetime
+from contextlib import asynccontextmanager
+import logging
 import os
 import re
 import sys
+import tempfile
 from typing import Optional
+
+# --------------------------------------------------
+# 1. Early Environment Configuration
+# Must run BEFORE importing Ultralytics or PyTorch
+# --------------------------------------------------
+os.environ["PYTHONUNBUFFERED"] = "1"
+
+# Guarantee a writable directory for Ultralytics settings on Render / Linux
+_temp_dir = tempfile.gettempdir()
+_default_yolo_cfg = str(Path(_temp_dir) / "ultralytics_config")
+yolo_config_dir = os.environ.get("YOLO_CONFIG_DIR") or _default_yolo_cfg
+os.environ["YOLO_CONFIG_DIR"] = yolo_config_dir
+try:
+    Path(yolo_config_dir).mkdir(parents=True, exist_ok=True)
+except Exception as _cfg_err:
+    pass
+
+# Configure root logger to output immediately to stdout
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("foodlens.backend")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
@@ -94,35 +121,127 @@ class CalculateTargetsRequest(BaseModel):
 
 
 # --------------------------------------------------
-# Paths
+# Paths & Model Management
 # --------------------------------------------------
 
-MODEL_PATH = BASE_DIR / "models" / "foodlens_yolo11s_best.pt"
 UPLOAD_DIR = BASE_DIR / "uploads"
-
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+model: Optional[YOLO] = None
+model_load_error: Optional[str] = None
+
+
+def resolve_model_path() -> Path:
+    """Robust resolution of the trained YOLO model file path."""
+    env_path = os.getenv("MODEL_PATH")
+    if env_path:
+        p = Path(env_path)
+        if p.is_file():
+            return p
+        if (BASE_DIR / env_path).is_file():
+            return BASE_DIR / env_path
+
+    # Standard location in repository
+    repo_model = BASE_DIR / "models" / "foodlens_yolo11s_best.pt"
+    if repo_model.is_file():
+        return repo_model
+
+    # Check relative to working directory
+    cwd_model = Path("models") / "foodlens_yolo11s_best.pt"
+    if cwd_model.is_file():
+        return cwd_model.resolve()
+
+    return repo_model
+
+
+def load_yolo_model() -> Optional[YOLO]:
+    """Loads the trained FoodLens YOLO model once into memory."""
+    global model, model_load_error
+    resolved_path = resolve_model_path()
+
+    if not resolved_path.is_file():
+        err_msg = f"YOLO model weights file not found at: {resolved_path}"
+        logger.error(err_msg)
+        model_load_error = err_msg
+        return None
+
+    try:
+        logger.info("Loading FoodLens YOLO model from %s...", resolved_path)
+        loaded = YOLO(str(resolved_path))
+        model = loaded
+        model_load_error = None
+        logger.info(
+            "YOLO model loaded successfully! (%d classes ready)",
+            len(model.names) if hasattr(model, "names") else 0
+        )
+        return model
+    except Exception as exc:
+        model_load_error = f"{type(exc).__name__}: {exc}"
+        logger.exception("Failed to load FoodLens YOLO model: %s", exc)
+        return None
+
+
+def get_yolo_model() -> Optional[YOLO]:
+    """Returns the loaded YOLO model, or attempts loading if not loaded yet."""
+    global model
+    if model is not None:
+        return model
+    return load_yolo_model()
+
 
 # --------------------------------------------------
-# Load model
+# FastAPI Lifespan (Startup & Shutdown Management)
 # --------------------------------------------------
 
-print("Loading FoodLens YOLO model...")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Manages application startup and shutdown.
+    Ensures port binds promptly while heavy tasks are safely initialized with logging.
+    """
+    logger.info("=========================================")
+    logger.info("FoodLens AI Backend initializing...")
+    logger.info("Python version: %s", sys.version.split()[0])
+    logger.info("Base directory: %s", BASE_DIR)
+    logger.info("YOLO Config Dir: %s", os.environ.get("YOLO_CONFIG_DIR"))
+    logger.info("Listening Port: %s", os.environ.get("PORT", "8000"))
+    logger.info("=========================================")
 
-model = YOLO(str(MODEL_PATH))
+    # 1. Load YOLO Model
+    try:
+        load_yolo_model()
+    except Exception as err:
+        logger.exception("YOLO initialization error: %s", err)
 
-print("Model loaded successfully!")
-print("Classes:", len(model.names))
+    # 2. Initialize Database Tables
+    try:
+        logger.info("Verifying database schema...")
+        create_tables()
+        logger.info("Database schema verified.")
+    except Exception as err:
+        logger.warning("Database schema initialization warning: %s", err)
+
+    # 3. Seed Demo Account and Sample Meal Logs
+    try:
+        from backend.demo_data import ensure_demo_user_seeded
+        ensure_demo_user_seeded()
+    except Exception as err:
+        logger.warning("Demo account seeding notice: %s", err)
+
+    logger.info("FoodLens AI Backend is ready to accept requests.")
+    yield
+    logger.info("FoodLens AI Backend shutting down...")
 
 
 # --------------------------------------------------
-# FastAPI application
+# FastAPI Application
 # --------------------------------------------------
 
 app = FastAPI(
     title="FoodLens AI",
     description="Indian Food Detection & Personalized Nutrition API",
-    version="1.1.0"
+    version="1.1.0",
+    lifespan=lifespan
 )
 
 cors_origin_regex = os.getenv("ALLOWED_ORIGIN_REGEX")
@@ -136,21 +255,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-create_tables()
-
-try:
-    from backend.demo_data import ensure_demo_user_seeded
-    ensure_demo_user_seeded()
-except Exception as _seed_err:
-    print("Notice: demo data initialization skipped:", _seed_err)
-
 FRONTEND_DIR = BASE_DIR / "frontend"
 if FRONTEND_DIR.exists():
     app.mount("/app", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
 
 
 # --------------------------------------------------
-# Auth Helper Dependency
+# Auth Helper Dependencies
 # --------------------------------------------------
 
 def get_current_user_optional(authorization: Optional[str] = Header(None)):
@@ -192,16 +303,29 @@ def home():
     if FRONTEND_DIR.exists():
         return RedirectResponse(url="/app/")
     return {
-        "message": "FoodLens AI API is running"
+        "message": "FoodLens AI API is running",
+        "docs": "/docs",
+        "health": "/health"
     }
 
 
 @app.get("/health")
 def health():
+    """
+    Lightweight health endpoint for Render and monitoring services.
+    Reports API health and YOLO model readiness with diagnostics.
+    """
+    current_model = get_yolo_model()
+    is_model_ready = current_model is not None and hasattr(current_model, "names")
+    classes_count = len(current_model.names) if is_model_ready else 0
+
     return {
         "status": "ok",
+        "api": "healthy",
         "model": "YOLO11s",
-        "classes": len(model.names)
+        "model_ready": is_model_ready,
+        "classes": classes_count,
+        "model_error": model_load_error if not is_model_ready else None
     }
 
 
@@ -211,14 +335,12 @@ def health():
 
 @app.post("/auth/register")
 def register(req: RegisterRequest):
-    # Check if username or email already exists
     existing = get_user_by_email_or_username(req.email)
     if not existing:
         existing = get_user_by_email_or_username(req.username)
     if existing:
         raise HTTPException(status_code=400, detail="A user with that username or email already exists.")
 
-    # Calculate personalized nutrition targets according to weight, height, age, activity & goal
     calc = calculate_nutrition_targets(
         weight_kg=req.weight,
         goal=req.goal,
@@ -264,7 +386,6 @@ def login(req: LoginRequest):
 
     token = generate_token(user_record["id"])
 
-    # Safe user dict
     user = get_user_by_id(user_record["id"])
     calc = calculate_nutrition_targets(
         weight_kg=user["weight"],
@@ -467,26 +588,34 @@ def today_recommendations(user=Depends(get_current_user_optional)):
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    # Check file type
+    # 1. Check file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Please upload an image file.")
 
-    # Save uploaded image
+    # 2. Check model availability
+    current_model = get_yolo_model()
+    if current_model is None:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Food detection model is not ready. Details: {model_load_error or 'Model initialization failed'}"
+        )
+
+    # 3. Save uploaded image
     file_path = UPLOAD_DIR / file.filename
     contents = await file.read()
 
     with open(file_path, "wb") as f:
         f.write(contents)
 
-    # Open image
+    # 4. Open image safely
     try:
         image = Image.open(file_path).convert("RGB")
     except (UnidentifiedImageError, OSError) as error:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail="The uploaded file could not be read as an image.") from error
 
-    # Run YOLO
-    results = model.predict(
+    # 5. Run YOLO inference
+    results = current_model.predict(
         source=image,
         imgsz=640,
         conf=0.05,
@@ -502,7 +631,7 @@ async def predict(file: UploadFile = File(...)):
         for box in result.boxes:
             class_id = int(box.cls[0])
             confidence = float(box.conf[0])
-            food_name = model.names[class_id]
+            food_name = current_model.names[class_id]
             x1, y1, x2, y2 = box.xyxy[0].tolist()
 
             detection = {
@@ -523,7 +652,7 @@ async def predict(file: UploadFile = File(...)):
 
             detections.append(detection)
 
-    # Simple food list
+    # Calculate meal summary
     foods = [
         detection["food"]
         for detection in detections
@@ -593,3 +722,21 @@ def save_meal_api(request: SaveMealRequest, user=Depends(get_current_user_option
         "meal_type": request.meal_type,
         "user_id": user_id
     }
+
+
+# --------------------------------------------------
+# Entrypoint for local and container execution
+# --------------------------------------------------
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port_env = os.environ.get("PORT", "8000")
+    try:
+        bind_port = int(port_env)
+    except ValueError:
+        logger.warning("Invalid PORT environment variable '%s', defaulting to 8000", port_env)
+        bind_port = 8000
+
+    logger.info("Starting FoodLens AI Uvicorn server on 0.0.0.0:%d", bind_port)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=bind_port, log_level="info")
