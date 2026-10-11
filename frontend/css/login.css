@@ -1,0 +1,356 @@
+/* FoodLens AI - Login & Registration Styles */
+.auth-page {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 64px;
+}
+
+.auth-wrapper {
+  width: min(560px, 100%);
+  margin: 0 auto;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-header {
+  padding: 32px 32px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(223, 245, 232, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.auth-header .eyebrow {
+  color: var(--primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.auth-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  color: var(--primary-deep);
+  letter-spacing: -0.03em;
+}
+
+.auth-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.auth-tabs {
+  display: flex;
+  background: #f1efe9;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  margin: 20px 32px 0;
+  gap: 4px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+  background: #fff;
+  color: var(--primary-deep);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.auth-body {
+  padding: 28px 32px 32px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auth-field label small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.auth-input,
+.auth-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(17, 42, 31, 0.15);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-input:focus,
+.auth-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(31, 107, 79, 0.15);
+}
+
+.auth-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.auth-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+/* Goal Selection Cards */
+.goal-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.goal-option-card {
+  position: relative;
+  border: 2px solid rgba(17, 42, 31, 0.12);
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.goal-option-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.goal-option-card:hover {
+  border-color: rgba(31, 107, 79, 0.4);
+  transform: translateY(-2px);
+}
+
+.goal-option-card.selected {
+  border-color: var(--primary);
+  background: #f0f9f4;
+  box-shadow: 0 4px 12px rgba(31, 107, 79, 0.12);
+}
+
+.goal-option-icon {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.goal-option-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary-deep);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.goal-option-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  display: block;
+  line-height: 1.25;
+}
+
+/* Live Nutrition Preview */
+.live-target-preview {
+  background: linear-gradient(135deg, #eef7f2 0%, #e6f4ec 100%);
+  border: 1px solid rgba(45, 167, 116, 0.25);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-badge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-badge-header span {
+  font-size: 0.74rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+}
+
+.preview-badge-header strong {
+  font-size: 0.85rem;
+  color: var(--primary-deep);
+}
+
+.preview-metrics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.preview-metric-pill {
+  background: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 42, 31, 0.08);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.preview-metric-pill small {
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+/* Buttons */
+.auth-submit-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(31, 107, 79, 0.25);
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-submit-btn:hover {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(31, 107, 79, 0.35);
+}
+
+.auth-demo-btn {
+  width: 100%;
+  padding: 11px;
+  border: 1px dashed var(--primary);
+  border-radius: 12px;
+  background: #f7faf8;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-demo-btn:hover {
+  background: #ebf5ee;
+  border-style: solid;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.74rem;
+  margin: 4px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+
+.auth-divider span {
+  padding: 0 10px;
+}
+
+.nav-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff !important;
+  font-size: 0.8rem;
+  font-weight: 650;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.nav-signin-btn:hover {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+}
+
+.profile-logged-in {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--primary);
+}
+
+@media (max-width: 540px) {
+  .auth-body {
+    padding: 20px 20px 24px;
+  }
+  .auth-header {
+    padding: 24px 20px 16px;
+  }
+  .auth-tabs {
+    margin: 16px 20px 0;
+  }
+  .auth-row-2,
+  .auth-row-3,
+  .goal-selector-grid {
+    grid-template-columns: 1fr;
+  }
+}

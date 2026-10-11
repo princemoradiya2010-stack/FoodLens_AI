@@ -51,7 +51,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const items = recommendationsResult.status === "fulfilled"
     ? recommendationsResult.value?.recommendations?.filter((item) => typeof item === "string" && item.trim()) || []
     : [];
+  const goalBadge = recommendationsResult.status === "fulfilled" && recommendationsResult.value?.goal
+    ? (recommendationsResult.value.goal === "weight_gain" ? "Weight Gain" : recommendationsResult.value.goal === "weight_loss" ? "Weight Loss" : "Maintenance")
+    : "Goal";
+
   recommendations.innerHTML = items.length
-    ? items.map((item) => `<article class="suggestion-card"><span class="insight-mark" aria-hidden="true">✦</span><h3>Nutrition insight</h3><p>${ui.escapeHtml(item)}</p></article>`).join("")
+    ? items.map((item) => `<article class="suggestion-card"><span class="insight-mark" aria-hidden="true">✦</span><h3>${ui.escapeHtml(goalBadge)} Recommendation</h3><p>${ui.escapeHtml(item)}</p></article>`).join("")
     : `<div class="empty-state-message">${recommendationsResult.status === "fulfilled" ? "No nutrition recommendations are available right now." : "Nutrition recommendations are unavailable while the backend is offline."}</div>`;
 });

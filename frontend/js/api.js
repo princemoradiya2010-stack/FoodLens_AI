@@ -5,11 +5,32 @@
            "http://127.0.0.1:8000";
   }
 
+  function getAuthToken() {
+    try {
+      return localStorage.getItem("foodlens_token") || null;
+    } catch {
+      return null;
+    }
+  }
+
   async function request(path, options = {}) {
     const baseUrl = getBaseUrl();
+    const headers = new Headers(options.headers || {});
+
+    // Automatically inject auth header if available and not already provided
+    const token = getAuthToken();
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    const fetchOptions = {
+      ...options,
+      headers
+    };
+
     let response;
     try {
-      response = await fetch(`${baseUrl}${path}`, options);
+      response = await fetch(`${baseUrl}${path}`, fetchOptions);
     } catch (error) {
       const isRemote = !baseUrl.includes("127.0.0.1") && !baseUrl.includes("localhost");
       const hint = isRemote
@@ -54,6 +75,29 @@
     getTodaySummary: () => request("/summary/today"),
     getProgress: () => request("/summary/progress"),
     getGoals: () => request("/goals"),
-    getRecommendations: () => request("/recommendations/today")
+    getRecommendations: () => request("/recommendations/today"),
+
+    // Auth & Nutrition Target endpoints
+    register: (userData) => request("/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData)
+    }),
+    login: (credentials) => request("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials)
+    }),
+    getMe: () => request("/auth/me"),
+    updateProfile: (profileData) => request("/auth/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profileData)
+    }),
+    calculateTargets: (metrics) => request("/nutrition/calculate-targets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(metrics)
+    })
   });
 })();

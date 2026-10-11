@@ -1,2 +1,329 @@
-.goal-card { min-height: 130px; }
-.profile-info-grid .nutrition-card { min-height: 145px; }
+/* FoodLens AI - Profile & Target Customizer Styles */
+.user-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 28px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(27, 44, 35, 0.06);
+  margin-bottom: 28px;
+}
+
+.user-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.user-avatar-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(31, 107, 79, 0.3);
+}
+
+.user-meta h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.user-meta p {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.user-goal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--accent);
+  color: var(--primary-deep);
+  border: 1px solid rgba(45, 167, 116, 0.3);
+}
+
+.user-profile-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-secondary-outline {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-outline:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: #fdf5f5;
+}
+
+.guest-callout-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #fff9ee 0%, #fff4df 100%);
+  border: 1px solid rgba(247, 169, 59, 0.35);
+  border-radius: var(--radius-md);
+  margin-bottom: 28px;
+}
+
+.guest-callout-card strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #7b4a08;
+  margin-bottom: 2px;
+}
+
+.guest-callout-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #925c14;
+}
+
+.guest-callout-card a {
+  padding: 9px 18px;
+  background: var(--secondary);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(247, 169, 59, 0.3);
+  transition: all 0.2s ease;
+}
+
+.guest-callout-card a:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* Target Customizer Form */
+.customizer-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 26px 28px;
+  box-shadow: 0 4px 20px rgba(27, 44, 35, 0.04);
+  margin-bottom: 34px;
+}
+
+.customizer-heading {
+  margin-bottom: 20px;
+}
+
+.customizer-heading h3 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--primary-deep);
+}
+
+.customizer-heading p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.customizer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.customizer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.customizer-field label {
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+}
+
+.customizer-field label small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.customizer-input,
+.customizer-select {
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 42, 31, 0.15);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #fbfaf8;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.customizer-input:focus,
+.customizer-select:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(31, 107, 79, 0.12);
+}
+
+.customizer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-primary-action {
+  padding: 11px 22px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(31, 107, 79, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-action:hover {
+  background: var(--primary-deep);
+  transform: translateY(-1px);
+}
+
+/* Goals Grid */
+.goals-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.goal-card {
+  min-height: 126px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(27, 44, 35, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.goal-card .nutrition-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.goal-card .nutrition-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+
+.goal-card .nutrition-value small {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.goal-card-caption {
+  font-size: 0.72rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Guidance & Recommendations */
+.strategy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.strategy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fbfaf8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.strategy-item span.icon {
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+  .goals-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .customizer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .user-profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 20px;
+  }
+  .customizer-grid {
+    grid-template-columns: 1fr;
+  }
+  .goals-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .guest-callout-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,15 +1,180 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="Review your FoodLens nutrition goals and application settings." /><title>FoodLens AI · Profile & Goals</title><link rel="stylesheet" href="css/global.css" /><link rel="stylesheet" href="css/animations.css" /><link rel="stylesheet" href="css/profile.css" /></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Personalize your nutrition targets based on your weight and fitness goals." />
+  <title>FoodLens AI · Profile & Nutrition Goals</title>
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+</head>
 <body data-page="profile">
-  <header class="topbar"><nav class="navbar container" aria-label="Main navigation">
-    <a class="brand" href="index.html"><span class="brand-icon">◉</span><span class="brand-copy"><strong>FOODLENS AI</strong><small>SMART NUTRITION</small></span></a>
-    <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu"><span></span><span></span><span></span></button>
-    <div class="nav-menu" id="nav-menu"><a data-page="dashboard" href="index.html">Dashboard</a><a data-page="scan" href="scan.html">Scan Food</a><a data-page="today" href="today.html">Today's Meals</a><a data-page="history" href="history.html">History</a><a data-page="insights" href="insights.html">Insights</a></div>
-    <div class="nav-actions"><span class="today-indicator"><span class="today-indicator-dot"></span><span id="today-date">Today</span></span><span class="profile-button" aria-label="Profile and nutrition goals">F</span></div>
-  </nav></header>
-  <main class="container page-content"><section class="page-heading"><span class="eyebrow">Your FoodLens account</span><h1>Profile &amp; Nutrition Goals</h1><p>Review the daily nutrition goals configured for this application.</p></section>
-    <section class="section-block"><div class="section-heading"><span class="eyebrow">Read-only · provided by FoodLens</span><h2>Daily Nutrition Goals</h2></div><div id="goals-list" class="nutrition-grid"><div class="loading-state">Loading your nutrition goals…</div></div><p class="settings-note">Goals are supplied by the existing backend. Goal editing is not available in this version.</p></section>
-    <section class="section-block"><div class="section-heading"><span class="eyebrow">Application</span><h2>FoodLens Preferences</h2></div><div class="profile-info-grid"><article class="nutrition-card"><span class="nutrition-label">Meal tracking</span><strong>Local meal journal</strong><p>Meals are saved to the FoodLens backend and SQLite database.</p></article><article class="nutrition-card"><span class="nutrition-label">Food analysis</span><strong>YOLO-powered recognition</strong><p>Food detection and nutrition estimates use the configured FoodLens model and nutrition data.</p></article><article class="nutrition-card"><span class="nutrition-label">Privacy</span><strong>No account sign-in</strong><p>This application does not currently provide authentication or user profiles.</p></article></div></section>
-  </main><footer class="site-footer"><div class="container"><a href="about.html">About FoodLens AI</a><span>Nutrition estimates are informational and may vary.</span></div></footer><div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
-  <script src="js/config.js"></script><script src="js/api.js"></script><script src="js/global.js"></script><script src="js/profile.js"></script>
-<script src="js/animations.js"></script></body></html>
+  <header class="topbar">
+    <nav class="navbar container" aria-label="Main navigation">
+      <a class="brand" href="index.html">
+        <span class="brand-icon">◉</span>
+        <span class="brand-copy"><strong>FOODLENS AI</strong><small>SMART NUTRITION</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-menu" id="nav-menu">
+        <a data-page="dashboard" href="index.html">Dashboard</a>
+        <a data-page="scan" href="scan.html">Scan Food</a>
+        <a data-page="today" href="today.html">Today's Meals</a>
+        <a data-page="history" href="history.html">History</a>
+        <a data-page="insights" href="insights.html">Insights</a>
+      </div>
+      <div class="nav-actions">
+        <span class="today-indicator">
+          <span class="today-indicator-dot"></span>
+          <span id="today-date">Today</span>
+        </span>
+        <span class="profile-button" aria-label="Profile and nutrition goals">F</span>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container page-content">
+    <section class="page-heading">
+      <span class="eyebrow">Personalized AI Nutrition Hub</span>
+      <h1>Profile &amp; Nutrition Goals</h1>
+      <p>Configure your weight, height, and fitness goals. FoodLens automatically calculates clinical calorie and macronutrient targets.</p>
+    </section>
+
+    <!-- User Profile Banner / Guest Callout -->
+    <div id="profile-auth-status">
+      <!-- Injected via profile.js: user header or guest card -->
+    </div>
+
+    <!-- Interactive Weight & Goal Customizer -->
+    <section class="section-block">
+      <div class="customizer-card">
+        <div class="customizer-heading">
+          <h3>🎯 Personal Weight &amp; Goal Customizer</h3>
+          <p>Update your current body weight or switch fitness goals to immediately recalculate your ideal nutrition numbers.</p>
+        </div>
+
+        <form id="profile-customizer-form">
+          <div class="customizer-grid">
+            <div class="customizer-field">
+              <label for="prof-weight">Current Weight <small>(kg)</small></label>
+              <input class="customizer-input" id="prof-weight" type="number" step="0.5" min="30" max="250" value="70" required />
+            </div>
+
+            <div class="customizer-field">
+              <label for="prof-goal">Primary Goal</label>
+              <select class="customizer-select" id="prof-goal">
+                <option value="weight_loss" selected>📉 Weight Loss (Caloric Deficit)</option>
+                <option value="weight_gain">📈 Weight Gain (Caloric Surplus)</option>
+                <option value="maintenance">⚖️ Maintenance (Caloric Balance)</option>
+              </select>
+            </div>
+
+            <div class="customizer-field">
+              <label for="prof-activity">Activity Level</label>
+              <select class="customizer-select" id="prof-activity">
+                <option value="sedentary">Sedentary (desk job)</option>
+                <option value="light">Lightly Active (1-3 days/wk)</option>
+                <option value="moderate" selected>Moderately Active (3-5 days/wk)</option>
+                <option value="active">Active (6-7 days/wk)</option>
+                <option value="very_active">Very Active (athlete)</option>
+              </select>
+            </div>
+
+            <div class="customizer-field">
+              <label for="prof-height">Height <small>(cm)</small></label>
+              <input class="customizer-input" id="prof-height" type="number" step="1" min="90" max="240" value="172" required />
+            </div>
+
+            <div class="customizer-field">
+              <label for="prof-age">Age <small>(years)</small></label>
+              <input class="customizer-input" id="prof-age" type="number" step="1" min="14" max="100" value="25" required />
+            </div>
+
+            <div class="customizer-field">
+              <label for="prof-gender">Biological Gender</label>
+              <select class="customizer-select" id="prof-gender">
+                <option value="male" selected>Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="customizer-actions">
+            <button class="btn-primary-action" id="save-targets-btn" type="submit">
+              ⚡ Recalculate &amp; Save Targets
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Calculated Daily Targets -->
+    <section class="section-block">
+      <div class="section-heading">
+        <span class="eyebrow">Evidence-Based Clinical Targets</span>
+        <h2 id="targets-title">Your Daily Nutrition Targets</h2>
+      </div>
+      <div id="goals-list" class="goals-metrics-grid">
+        <div class="loading-state">Loading your personalized nutrition targets…</div>
+      </div>
+    </section>
+
+    <!-- Goal Strategy Guidance & Dietary Recommendations -->
+    <section class="section-block">
+      <div class="section-heading">
+        <span class="eyebrow">Goal-Specific Dietary Strategy</span>
+        <h2>Personalized Nutrition Guidelines</h2>
+      </div>
+      <div class="customizer-card" id="strategy-card">
+        <div id="strategy-content">
+          <div class="loading-state">Loading dietary guidelines…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Preferences & Model Specs -->
+    <section class="section-block">
+      <div class="section-heading">
+        <span class="eyebrow">System Specs</span>
+        <h2>FoodLens Engine</h2>
+      </div>
+      <div class="profile-info-grid">
+        <article class="nutrition-card">
+          <span class="nutrition-label">Target Engine</span>
+          <strong>Mifflin-St Jeor Clinical BMR</strong>
+          <p>Calculates exact expenditure &amp; protein ratios (1.8 - 2.0g/kg) matching clinical sports nutrition standards.</p>
+        </article>
+        <article class="nutrition-card">
+          <span class="nutrition-label">Food Recognition</span>
+          <strong>YOLO11 Vision Model</strong>
+          <p>Trained to identify 20 staple Indian dishes with calibrated serving sizes and macronutrients.</p>
+        </article>
+        <article class="nutrition-card">
+          <span class="nutrition-label">Data Privacy</span>
+          <strong>Secure User Profile</strong>
+          <p>Your logged meals and targets are linked to your secure account session.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <a href="about.html">About FoodLens AI</a>
+      <span>Nutrition estimates are informational and calculated based on your personal metrics.</span>
+    </div>
+  </footer>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/global.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/animations.js"></script>
+</body>
+</html>

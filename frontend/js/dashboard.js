@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const ui = window.FoodLensUI;
   const api = ui.api;
+  const auth = window.FoodLensAuth;
   const status = document.getElementById("backend-status");
   const greeting = document.getElementById("hero-greeting");
   const count = document.getElementById("hero-meal-count");
@@ -9,8 +10,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const progress = document.getElementById("daily-progress");
   const mealsTarget = document.getElementById("dashboard-meals");
   const insightTarget = document.getElementById("dashboard-insight");
+
   const hour = new Date().getHours();
-  greeting.textContent = `${hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"} 👋`;
+  const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const user = auth && auth.getUser ? auth.getUser() : null;
+
+  if (user && user.username) {
+    const goalTitle = user.goal ? (user.goal === "weight_gain" ? "Weight Gain" : user.goal === "weight_loss" ? "Weight Loss" : "Maintenance") : "";
+    greeting.textContent = `${timeGreeting}, ${user.username} ${goalTitle ? `· ${goalTitle}` : ""} 👋`;
+  } else {
+    greeting.textContent = `${timeGreeting} 👋`;
+  }
+
   status.innerHTML = '<span class="status-dot"></span><span>Connecting to FoodLens…</span>';
 
   const results = await Promise.allSettled([
@@ -47,6 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const recommendations = recommendationsResult?.recommendations?.filter((item) => typeof item === "string") || [];
   insightTarget.innerHTML = recommendations.length
-    ? `<article class="suggestion-card"><span class="insight-mark" aria-hidden="true">✦</span><h3>Nutrition insight</h3><p>${ui.escapeHtml(recommendations[0])}</p><a class="text-link" href="insights.html">View all insights →</a></article>`
+    ? `<article class="suggestion-card"><span class="insight-mark" aria-hidden="true">✦</span><h3>Goal Guidance · ${ui.escapeHtml(recommendationsResult?.goal ? recommendationsResult.goal.replace('_', ' ') : 'Nutrition')}</h3><p>${ui.escapeHtml(recommendations[0])}</p><a class="text-link" href="insights.html">View all insights →</a></article>`
     : `<div class="empty-state-message">${online ? "No nutrition insights are available right now." : "Nutrition insights are unavailable while the backend is offline."}</div>`;
 });
